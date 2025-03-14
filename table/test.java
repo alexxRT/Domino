@@ -2,6 +2,7 @@ import javafx.application.Application;
 
 import java.io.File;
 
+import Table.gameTable;
 import Tile.TileSprite;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -32,8 +33,8 @@ public class test extends Application{
         background.setFitWidth(1000);
         rootGroup.getChildren().add(background);
 
-        TileSprite myTile = new TileSprite(0, 0, 100, 100);
-        rootGroup.getChildren().add(myTile);
+        gameTable table = new gameTable(1000, 500);
+        rootGroup.getChildren().add(table);
 
         Scene board = new Scene(rootGroup, 1000, 500);
         primaryStage.setScene(board);

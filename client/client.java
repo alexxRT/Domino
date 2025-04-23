@@ -1,14 +1,15 @@
 package client;
-import connection.connection;
 import java.io.*;
 
+import connection.Connection;
+
 public class client {
-    private connection connRemote;
+    private Connection connRemote;
     private Thread handleIncomming;
     private Thread handleOutcomming;
 
     public void runNetworking(String ipAddress, int port) {
-        connRemote = new connection(ipAddress, port);
+        connRemote = new Connection(ipAddress, port);
         // start handle incomming from server and send text to server
         if (connRemote.isConnected()) {
             handleIncomming = new Thread(new HandleIncomming());

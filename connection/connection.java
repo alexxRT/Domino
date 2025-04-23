@@ -2,12 +2,12 @@ package connection;
 import java.io.*;
 import java.net.*;
 
-public class connection {
+public class Connection {
     private BufferedReader in;
     private BufferedWriter out;
     private Socket socket;
 
-    public connection(String ipAddress, int port) {
+    public Connection(String ipAddress, int port) {
         try {
             socket = new Socket(ipAddress, port);
             in     = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -24,7 +24,7 @@ public class connection {
         }
     }
 
-    public connection(Socket socket) {
+    public Connection(Socket socket) {
         if (socket.isClosed() || !socket.isConnected()) {
             System.out.println("Attempt to init connection via invlid socket!");
             throw new ExceptionInInitializerError(new String("Bad socket on connection init!"));

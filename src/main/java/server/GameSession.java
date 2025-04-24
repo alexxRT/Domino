@@ -34,15 +34,15 @@ public class GameSession {
         PlayerID playerStat = checkVacant();
 
         switch (playerStat) {
-            case PlayerID.FIRST_PLAYER:
+            case FIRST_PLAYER:
                 playerOne = newPlayer;
                 numActivePlayers += 1;
                 break;
-            case PlayerID.SECOND_PLAYER:
+            case SECOND_PLAYER:
                 playerTwo = newPlayer;
                 numActivePlayers += 1;
                 break;
-            case PlayerID.OUT_OF_PLAYERS:
+            case OUT_OF_PLAYERS:
                 return false;
             default:
                 String errMsg = new String("Unknow PlayerID on addPlayer");
@@ -55,8 +55,9 @@ public class GameSession {
         if (checkVacant() == PlayerID.OUT_OF_PLAYERS) {
             game = new DominoGame(800, 600, new Position(0, 0));
 
-            new Thread(new PlayerHandler(PlayerID.FIRST_PLAYER, playerOne, this));
-            new Thread(new PlayerHandler(PlayerID.SECOND_PLAYER, playerTwo, this));
+            System.out.println("Starting handlling for two connected players!");
+            new Thread(new PlayerHandler(PlayerID.FIRST_PLAYER, playerOne, this)).start();;
+            new Thread(new PlayerHandler(PlayerID.SECOND_PLAYER, playerTwo, this)).start();;
         }
         return true;
     }

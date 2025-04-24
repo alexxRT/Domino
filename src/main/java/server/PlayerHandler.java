@@ -20,9 +20,12 @@ public class PlayerHandler implements Runnable {
         try {
             while ((clientMessage = conn.recieveString()) != null) {
                 // first message byte - from which client message recieved
-                GameResponse response = session.processCommand(playerId + clientMessage);
-                conn.sendString(response.toString());
+                System.out.println("Recieved from client " + playerId + " Msg: " + clientMessage);
+                // GameResponse response = session.processCommand(playerId + clientMessage);
+                // conn.sendString(response.toString());
+                conn.sendString("Thanks for you request!");
             }
+            System.out.println("Finished handling");
         }
         catch (IOException e) {
             System.out.println("Player " + playerId + " has network issues! Terminating handling...");

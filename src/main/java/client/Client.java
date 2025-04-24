@@ -3,7 +3,7 @@ import java.io.*;
 
 import connection.Connection;
 
-public class client {
+public class Client {
     private Connection connRemote;
     private Thread handleIncomming;
     private Thread handleOutcomming;
@@ -34,12 +34,11 @@ public class client {
     private class HandleIncomming implements Runnable {
         @Override
         public void run() {
-            String serverMessage = connRemote.recieveString();
-            while (serverMessage != null) {
+            String serverMessage;
+            while ((serverMessage = connRemote.recieveString()) != null) {
                 // handle incomming messages here
                 // expand it with switch-case further
                 System.out.println("Recieved notification from server! Message: [" + serverMessage + "]");
-                serverMessage = connRemote.recieveString();
                 // Platform.runLater(() -> { - this is used to pass info on frontend
                 // });
             }

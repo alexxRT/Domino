@@ -59,10 +59,12 @@ public class Connection {
         catch (SocketException e) {
             System.out.println("Client fails with socket exception!");
             e.printStackTrace();
+            return null;
         }
         catch (IOException e) {
             System.out.println("Unable to recieve string from remote!");
             e.printStackTrace();
+            return null;
         }
         return incomming;
     }

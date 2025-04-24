@@ -1,4 +1,4 @@
-package Animation;
+package ui;
 
 import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
@@ -7,7 +7,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import javafx.event.*;
 
-public class popUp {
+public class PopUp {
     private TranslateTransition onMouseEnter;
     private Duration enterStart = Duration.millis(0);
 

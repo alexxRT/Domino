@@ -1,4 +1,4 @@
-package Animation;
+package ui;
 
 import javafx.util.Duration;
 
@@ -8,7 +8,7 @@ import javafx.animation.TranslateTransition;
 import javafx.geometry.Point3D;
 import javafx.scene.image.ImageView;
 
-public class moveDesire {
+public class MoveDesire {
     private TranslateTransition placeMove  = new TranslateTransition();
     private RotateTransition rotateMove    = new RotateTransition();
     private ParallelTransition placeDesire = new ParallelTransition();

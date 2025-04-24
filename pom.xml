@@ -91,7 +91,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>client.ClientApp</mainClass>
+                                    <mainClass>client.DominoClient</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

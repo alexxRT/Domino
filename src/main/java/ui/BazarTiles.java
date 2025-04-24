@@ -1,6 +1,5 @@
-package Table;
+package ui;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +18,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-public class bazarTiles extends Region {
+public class BazarTiles extends Region {
     private int numLeft = 28;
     private List<BackgroundImage> statusImages = new ArrayList<>();
     private BackgroundImage currentImage;
 
-    public bazarTiles(double width, double hight, double posX, double posY) {
+    public BazarTiles(double width, double hight, double posX, double posY) {
         setPrefSize(width, hight);
 
         setLayoutX(posX);
@@ -33,9 +32,9 @@ public class bazarTiles extends Region {
         setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
         // load status images
-        String spritePath = "Table/sprites/dominos.jpeg";
+        String spritePath = getClass().getResource("/dominos.jpeg").toExternalForm();
         try {
-            Image spriteImage = new Image(new File(spritePath).toURI().toString());
+            Image spriteImage = new Image(spritePath);
             BackgroundImage image = new BackgroundImage(spriteImage,
             BackgroundRepeat.NO_REPEAT,
             BackgroundRepeat.NO_REPEAT,

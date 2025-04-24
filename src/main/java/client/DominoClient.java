@@ -1,16 +1,17 @@
-import javafx.application.Application;
+package client;
 
+import javafx.application.Application;
 import java.io.File;
 
-import Table.gameTable;
-import Tile.TileSprite;
+
+import ui.GameTable;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class test extends Application{
+public class DominoClient extends Application{
     public static void main(String[] args) {
         launch(args);
     }
@@ -21,10 +22,9 @@ public class test extends Application{
         Group rootGroup = new Group();
 
         ImageView background = new ImageView();
-        String tablePath = "Tile/sprites/dominoTable.jpeg";
         try {
-            File tablePNG = new File(tablePath);
-            background.setImage(new Image(tablePNG.toURI().toString()));
+            String tablePath = getClass().getResource("/dominoTable.jpeg").toExternalForm();
+            background.setImage(new Image(tablePath));
         } catch (Exception e) {
             System.out.println("Bad image init for tile!");
             e.printStackTrace();
@@ -33,7 +33,7 @@ public class test extends Application{
         background.setFitWidth(1000);
         rootGroup.getChildren().add(background);
 
-        gameTable table = new gameTable(1000, 500);
+        GameTable table = new GameTable(1000, 500);
         rootGroup.getChildren().add(table);
 
         Scene board = new Scene(rootGroup, 1000, 500);

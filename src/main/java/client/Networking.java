@@ -3,7 +3,7 @@ import java.io.*;
 
 import connection.Connection;
 
-public class Client {
+public class Networking {
     private Connection connRemote;
     private Thread handleIncomming;
     private Thread handleOutcomming;

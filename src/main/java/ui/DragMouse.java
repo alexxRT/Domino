@@ -1,14 +1,13 @@
-package Animation;
+package ui;
 
-import Table.handDeck;
+import ui.HandDeck;
 import javafx.event.EventHandler;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.Group;
 import javafx.scene.*;
 
-public class dragMouse {
+public class DragMouse {
     private ImageView toMove;
 
     private double anchorMouseX;
@@ -16,17 +15,16 @@ public class dragMouse {
 
     private handleMouse eventHandler = new handleMouse();
 
-    public dragMouse(ImageView toMove) {
+    public DragMouse(ImageView toMove) {
         this.toMove = toMove;
     }
-
     final class handleMouse implements EventHandler<MouseEvent> {
         @Override
         public void handle(MouseEvent event) {
             if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
 
                 // remove tile from deck
-                handDeck parentDeck = (handDeck)toMove.getParent();
+                HandDeck parentDeck = (HandDeck)toMove.getParent();
                 Parent root = parentDeck.getScene().getRoot();
                 parentDeck.getChildren().remove(toMove);
                 ((Group) root).getChildren().add(toMove);

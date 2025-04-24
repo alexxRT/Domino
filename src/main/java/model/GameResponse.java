@@ -3,6 +3,12 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public class GameResponse {
     private ResponseType type;
     private List<String> updateTiles;
@@ -18,31 +24,21 @@ public class GameResponse {
 
     @Override
     public String toString() {
-        StringBuilder response = new StringBuilder();
-        response.append("Move [f:");
+        ObjectNode response = JsonNodeFactory.instance.objectNode()
+                                .put("type", type.ordinal());
 
-        switch (type) {
-            case BAD_MOVE:
-                response.append("BAD_MOVE](");
-                break;
-            case PLACE_MOVE:
-                response.append("PLACE_MOVE](");
-                break;
-            case UPDATE_MOVE:
-                response.append("UPDATE_MOVE](");
-                break;
-            case RESIZE:
-                response.append("RESIZE](");
-                break;
-            default:
-                response.append("UNKNOWN]()");
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode arrayNode = response.putArray("tiles");
+
+        try {
+            for (String tileInfo : updateTiles) {
+                arrayNode.add(mapper.readTree(tileInfo));
+            }
         }
-
-        for (String tileInfo : updateTiles) {
-            response.append(tileInfo);
+        catch (JsonProcessingException e) {
+            System.out.println("Unable to properly add json for all update tiles!");
+            e.printStackTrace();
         }
-        response.append(")");
-
         return response.toString();
     }
 }

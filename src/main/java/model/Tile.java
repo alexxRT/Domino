@@ -1,4 +1,6 @@
 package model;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class Tile {
     private int leftVal;
@@ -54,9 +56,11 @@ public class Tile {
 
     @Override
     public String toString() {
-        return "Tile"
-                + "[l:" + leftVal + ";r:" + rightVal + "]"
-                + "[x:" + getX() + ";y:" + getY() + "]"
-                + "[rotate:" + rotateDegree + "]";
+        ObjectNode obj = JsonNodeFactory.instance.objectNode()
+                        .put("rval", rightVal)
+                        .put("lval", leftVal)
+                        .put("x", position.getX())
+                        .put("y", position.getY());
+        return obj.toString();
     }
 }

@@ -23,7 +23,9 @@ public class PlayerHandler implements Runnable {
                 System.out.println("Recieved from client " + playerId + " Msg: " + clientMessage);
                 // GameResponse response = session.processCommand(playerId + clientMessage);
                 // conn.sendString(response.toString());
-                conn.sendString("Thanks for you request!");
+                GameResponse response = new GameResponse(ResponseType.BAD_MOVE);
+                response.addUpdateTile(new Tile(2, 2));
+                conn.sendString(response.toString());
             }
             System.out.println("Finished handling");
         }

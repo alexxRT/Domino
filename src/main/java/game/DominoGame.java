@@ -8,10 +8,16 @@ public class DominoGame {
     private List<Tile> placedTiles;
     private Tile leftTile;
     private Tile rightTile;
+    private List<Tile> bazarTiles;
 
     public DominoGame(double width, double height, Position position) {
         this.board = new GameBoard(width, height, position);
         this.placedTiles = new ArrayList<>();
+
+        // here we need init all available dominos
+        for (int i = 0; i <= 6; i ++)
+            for (int j = i; j <= 6; j ++)
+               bazarTiles.add(new Tile(i, j));
     }
 
     public GameResponse placeTile(int left, int right) {
@@ -24,6 +30,31 @@ public class DominoGame {
         placeTileOnBoard(newTile);
         return createPlaceMoveResponse(newTile);
     }
+
+    public GameResponse getRandomTiles(List<Tile> userTiles, int numGet) {
+        if (numGet <= 0 || numGet > bazarTiles.size())
+            return new GameResponse(ResponseType.BAD_MOVE);
+        // just in case when user request tile from bazar,
+        // but he has valid move to do
+        for (Tile tile : userTiles) {
+            if (isMoveValid(tile))
+                return new GameResponse(ResponseType.BAD_MOVE);
+        }
+
+        Random getRandom = new Random();
+        int randomIndex;
+        GameResponse response = new GameResponse(ResponseType.GET_TILE);
+
+        for (int i = 0; i < numGet; i ++) {
+            randomIndex = getRandom.nextInt(bazarTiles.size());
+            Tile newTile = bazarTiles.remove(randomIndex);
+
+            response.addUpdateTile(newTile);
+            userTiles.add(newTile); // update number of user's tiles
+        }
+        return response;
+    }
+
 
     private boolean isMoveValid(Tile tile) {
         if (placedTiles.isEmpty()) return true;
@@ -104,31 +135,40 @@ public class DominoGame {
         return response;
     }
 
-    public boolean resizeTileChain() {
+    public boolean needResize() {
         double resizeCoeff = calculateResizeCoefficient();
-        if (resizeCoeff == 0) {
+        if (resizeCoeff == 0)
             return false;
-        }
+        return true;
+    }
 
-        applyResize(resizeCoeff);
+    public GameResponse resizeTileChain() {
+        GameResponse response = new GameResponse(ResponseType.UPDATE_MOVE);
+        double resizeCoeff = calculateResizeCoefficient();
+        placedTiles.forEach(tile -> {
+            tile.setLength(resizeCoeff * tile.getLength());
+            tile.setWidth(resizeCoeff * tile.getWidth());
+        });
+        for (Tile tile : placedTiles) {
+            response.addUpdateTile(tile);
+        }
+        return response;
+    }
+
+    public boolean needTranslate() {
+        double deltaX = calculateTranslation();
+        if (deltaX == 0)
+            return false;
         return true;
     }
 
     public GameResponse translateTileChain() {
-        double deltaX = calculateTranslation();
         GameResponse response = new GameResponse(ResponseType.UPDATE_MOVE);
-
-        if (deltaX == 0) {
-            return response; // Returns empty UPDATE_MOVE response
-        }
-
-        applyTranslation(deltaX);
-
+        applyTranslation(calculateTranslation());
         // Add all updated tiles to response
         for (Tile tile : placedTiles) {
             response.addUpdateTile(tile);
         }
-
         return response;
     }
 
@@ -155,13 +195,6 @@ public class DominoGame {
 
         return board.getWidth() - chainLength < minDivergency ?
             (board.getWidth() - minDivergency) / chainLength : 1;
-    }
-
-    private void applyResize(double resizeCoeff) {
-        placedTiles.forEach(tile -> {
-            tile.setLength(resizeCoeff * tile.getLength());
-            tile.setWidth(resizeCoeff * tile.getWidth());
-        });
     }
 
     private double calculateTranslation() {

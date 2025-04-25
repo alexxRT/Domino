@@ -24,19 +24,22 @@ public class PlayerHandler implements Runnable {
         try {
             while ((clientMessage = conn.recieveString()) != null) {
                 GameResponse clientIncomming = new GameResponse(clientMessage);
-
                 //we have two state for client, where its in the game or idle
                 if (!inSession()) {
                     // ignoring any requests unless it sends join session
                     if (clientIncomming.getType() != ResponseType.JOIN_SESSION)
                         conn.sendString(new GameResponse(ResponseType.BAD_MOVE).toString());
-                    else
+                    else {
                         session = sessionProvider.joinSession(conn);
+                        GameResponse onJoin = session.processCommand(conn, clientIncomming, tiles);
+                        conn.sendString(onJoin.toString());
+                    }
                 }
-
-                // Once we are in a session -> handle domino logic requests
-                GameResponse response = session.processCommand(conn, clientIncomming, tiles);
-                conn.sendString(response.toString());
+                else {
+                    // Once we are in a session -> handle domino logic requests
+                    GameResponse response = session.processCommand(conn, clientIncomming, tiles);
+                    conn.sendString(response.toString());
+                }
             }
         }
         catch (IOException e) {

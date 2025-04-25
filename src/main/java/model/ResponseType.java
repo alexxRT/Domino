@@ -6,5 +6,6 @@ public enum ResponseType {
     UPDATE_MOVE,
     JOIN_SESSION,
     MAKE_MOVE,
+    GET_TILE,
     RESIZE,
 }

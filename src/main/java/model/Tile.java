@@ -1,5 +1,8 @@
 package model;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class Tile {
@@ -12,11 +15,34 @@ public class Tile {
     private boolean mutedRight = false;
     private boolean mutedLeft = false;
 
+    static private String[] jsonNodes = {"rval", "lval", "x", "y", "rotate", "dimH", "dimW"};
+
     public Tile(int left, int right) {
         this.leftVal = left;
         this.rightVal = right;
         this.position = new Position(0, 0);
         this.dimension = new Dimension(0, 0);
+    }
+
+    public Tile(String bytes) {
+        try {
+            JsonNode tile;
+            if ((tile = checkFormatValid(bytes)) == null) {
+                System.out.println("Input json does not contain required fileds for Tile.");
+                return;
+            }
+
+            leftVal = tile.get("lval").asInt();
+            rightVal = tile.get("rval").asInt();
+            position = new Position(tile.get("x").asDouble(), tile.get("y").asDouble());
+            rotateDegree = tile.get("rotate").asDouble();
+            dimension = new Dimension(tile.get("dimH").asDouble(), tile.get("dimW").asDouble());
+        }
+        catch (JsonProcessingException e) {
+            System.out.println("Unable to parse tile from json!");
+            e.printStackTrace();
+            return;
+        }
     }
 
     public boolean areMutable(Tile nextTile) {
@@ -62,5 +88,16 @@ public class Tile {
                         .put("x", position.getX())
                         .put("y", position.getY());
         return obj.toString();
+    }
+
+    static public JsonNode checkFormatValid(String bytes) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode tile = mapper.readTree(bytes);
+
+        for (String nodeName : jsonNodes) {
+            if (tile.get(nodeName) == null)
+                return null;
+        }
+        return tile;
     }
 }

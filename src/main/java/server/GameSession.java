@@ -9,76 +9,57 @@ import model.*;
 
 
 public class GameSession {
-    private Connection playerOne;
-    private Connection playerTwo;
+    private Connection[] players = new Connection[2];
 
     private int numActivePlayers = 0;
     private DominoGame game;
 
-    // first connected player makes move first
-    private PlayerID whoseMove = PlayerID.FIRST_PLAYER;
-
     public GameSession() {};
 
-    private PlayerID checkVacant() {
-        if (numActivePlayers == 2)
-            return PlayerID.OUT_OF_PLAYERS;
+    private boolean checkVacant() {
+        if (players[0] == null ||
+            players[1] == null)
+                return true;
+        return false;
+    }
 
-        if (playerOne == null)
-            return PlayerID.FIRST_PLAYER;
+    private void insertNewPlayer(Connection newPlayer) {
+        if (players[0] == null) {
+            players[0] = newPlayer;
+            return;
+        }
 
-        if (playerTwo == null)
-            return PlayerID.SECOND_PLAYER;
-
-        String errMsg = new String("Can not resolve vacant!");
-        throw new RuntimeException(errMsg);
+        if (players[1] == null) {
+            players[1] = newPlayer;
+            return;
+        }
     }
 
     public boolean addPlayer(Connection newPlayer) {
-        PlayerID playerStat = checkVacant();
+        if (!checkVacant())
+            return false;
 
-        switch (playerStat) {
-            case FIRST_PLAYER:
-                playerOne = newPlayer;
-                numActivePlayers += 1;
-                break;
-            case SECOND_PLAYER:
-                playerTwo = newPlayer;
-                numActivePlayers += 1;
-                break;
-            case OUT_OF_PLAYERS:
-                return false;
-            default:
-                String errMsg = new String("Unknow PlayerID on addPlayer");
-                throw new RuntimeException(errMsg);
-        }
+        insertNewPlayer(newPlayer);
+        numActivePlayers += 1;
 
-        // new player successfully added,
-        // now check if there are two active players -> we start the game
-        // before that non of the user request was handled
-        if (checkVacant() == PlayerID.OUT_OF_PLAYERS) {
+        if (numActivePlayers == 2)
             game = new DominoGame(800, 600, new Position(0, 0));
 
-            System.out.println("Starting handlling for two connected players!");
-            new Thread(new PlayerHandler(PlayerID.FIRST_PLAYER, playerOne, this)).start();;
-            new Thread(new PlayerHandler(PlayerID.SECOND_PLAYER, playerTwo, this)).start();;
-        }
         return true;
     }
 
-    public GameResponse processCommand(GameResponse command, List<Tile> userTiles) {
+    public GameResponse processCommand(Connection user, GameResponse command, List<Tile> userTiles) {
         try {
             switch (command.getType()) {
                 case PLACE_MOVE:
                     return handlePlaceTile(command.getTile(0));
-                case UPDATE_MOVE:
-                    return game.translateTileChain();
-                case RESIZE:
-                    return handleResize();
                 case BAD_MOVE:
                 default:
                     return new GameResponse(ResponseType.BAD_MOVE);
             }
+            // check if resize and translate nedded and do it independently
+            // return game.translateTileChain();
+            // return handleResize();
         } catch (Exception e) {
             System.err.println("Error processing command: " + e.getMessage());
             return new GameResponse(ResponseType.BAD_MOVE);
@@ -103,10 +84,10 @@ public class GameSession {
     }
 
     public void close() {
-        if (playerOne != null)
-            playerOne.tearConnection();
+        if (players[0] != null)
+            players[0].tearConnection();
 
-        if (playerTwo != null)
-            playerTwo.tearConnection();
+        if (players[1] != null)
+            players[1].tearConnection();
     }
 }

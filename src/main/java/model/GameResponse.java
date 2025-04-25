@@ -16,7 +16,7 @@ public class GameResponse {
     private List<String> updateTiles;
 
     // needs to validate json inpput
-    static private final String[] jsonNodes = {"type", "tiles"};
+    static private final String[] jsonNodes = {"status", "type", "tiles"};
 
     public GameResponse(ResponseType type) {
         this.type = type;

@@ -4,5 +4,7 @@ public enum ResponseType {
     BAD_MOVE,
     PLACE_MOVE,
     UPDATE_MOVE,
-    RESIZE
+    JOIN_SESSION,
+    MAKE_MOVE,
+    RESIZE,
 }

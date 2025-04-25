@@ -8,7 +8,9 @@ import connection.Connection;
 
 public class DominoServer {
     private static int port = 12345;
-    private static List<GameSession> sessions = new ArrayList<>();
+
+    private static SessionManager manager = new SessionManager();
+    private static List<Thread> activeClients = new ArrayList<>();
 
     public static void main(String[] args) {
         String[] posArgs = {"server", "port"};
@@ -26,35 +28,15 @@ public class DominoServer {
 
             while (!serverSocket.isClosed()) {
                 Connection newPlayer = new Connection(serverSocket.accept());
-                // if last session is not vacant (already two users are playing)
-                // create new session
-                if (!tryAddSession(newPlayer)) {
-                    GameSession newSession = new GameSession();
-                    newSession.addPlayer(newPlayer);
-                    sessions.add(newSession);
-                }
+                Thread clientHandler = new Thread(new PlayerHandler(newPlayer, manager));
+                activeClients.add(clientHandler);
+
+                clientHandler.start(); // start handling newly connected client
             }
         } catch (IOException e) {
             System.err.println("Server failed to start: " + e.getMessage());
         } finally {
-            closeAllSessions();
-        }
-    }
-
-    private static boolean tryAddSession(Connection newPlayer) {
-        // if no sessions are running -> create new first one
-        if (sessions.size() == 0) {
-            GameSession newSession = new GameSession();
-            sessions.add(newSession);
-            return newSession.addPlayer(newPlayer);
-        }
-        return sessions.getLast().addPlayer(newPlayer);
-    }
-
-    private static void closeAllSessions() {
-        System.out.println("Closing all active game sessions...");
-        for (GameSession session : sessions) {
-            session.close();
+            manager.closeAllSessions();
         }
     }
 }

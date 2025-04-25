@@ -1,8 +1,12 @@
 package server;
 
+import java.util.List;
+
 import connection.Connection;
 import game.DominoGame;
 import model.*;
+
+
 
 public class GameSession {
     private Connection playerOne;
@@ -62,16 +66,16 @@ public class GameSession {
         return true;
     }
 
-    public GameResponse processCommand(String command) {
-        String[] parts = command.split(" ");
+    public GameResponse processCommand(GameResponse command, List<Tile> userTiles) {
         try {
-            switch (parts[0].toUpperCase()) {
-                case "PLACE":
-                    return handlePlaceTile(parts);
-                case "TRANSLATE":
+            switch (command.getType()) {
+                case PLACE_MOVE:
+                    return handlePlaceTile(command.getTile(0));
+                case UPDATE_MOVE:
                     return game.translateTileChain();
-                case "RESIZE":
+                case RESIZE:
                     return handleResize();
+                case BAD_MOVE:
                 default:
                     return new GameResponse(ResponseType.BAD_MOVE);
             }
@@ -81,17 +85,8 @@ public class GameSession {
         }
     }
 
-    private GameResponse handlePlaceTile(String[] parts) {
-        if (parts.length != 3) {
-            return new GameResponse(ResponseType.BAD_MOVE);
-        }
-        try {
-            int left = Integer.parseInt(parts[1]);
-            int right = Integer.parseInt(parts[2]);
-            return game.placeTile(left, right);
-        } catch (NumberFormatException e) {
-            return new GameResponse(ResponseType.BAD_MOVE);
-        }
+    private GameResponse handlePlaceTile(Tile tile) {
+        return game.placeTile(tile.getLeftVal(), tile.getRightVal());
     }
 
     private GameResponse handleResize() {

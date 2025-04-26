@@ -1,6 +1,5 @@
 package ui;
 
-import ui.HandDeck;
 import javafx.event.EventHandler;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -22,12 +21,11 @@ public class DragMouse {
         @Override
         public void handle(MouseEvent event) {
             if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
-
-                // remove tile from deck
+                // remove tile from deck add to GameTable
                 HandDeck parentDeck = (HandDeck)toMove.getParent();
-                Parent root = parentDeck.getScene().getRoot();
+                GameTable table = (GameTable)parentDeck.getParent();
                 parentDeck.getChildren().remove(toMove);
-                ((Group) root).getChildren().add(toMove);
+                table.getChildren().add(toMove);
 
                 anchorMouseX = event.getX();
                 anchorMouseY = event.getY();

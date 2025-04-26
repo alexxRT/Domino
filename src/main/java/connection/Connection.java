@@ -46,24 +46,12 @@ public class Connection {
         out.flush();
     }
 
-    public String recieveString() {
+    public String recieveString() throws IOException {
         String incomming = new String();
-        try {
-            incomming = in.readLine();
-            if (incomming == null) {
-                System.err.println("End of file! Closing connection...");
-                tearConnection();
-                return null;
-            }
-        }
-        catch (SocketException e) {
-            System.out.println("Client fails with socket exception!");
-            e.printStackTrace();
-            return null;
-        }
-        catch (IOException e) {
-            System.out.println("Unable to recieve string from remote!");
-            e.printStackTrace();
+        incomming = in.readLine();
+        if (incomming == null) {
+            System.err.println("End of file! Closing connection...");
+            tearConnection();
             return null;
         }
         return incomming;

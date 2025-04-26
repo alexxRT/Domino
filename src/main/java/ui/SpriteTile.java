@@ -1,13 +1,15 @@
 package ui;
 
-import java.io.*;
 import model.*;
 
-import ui.DragMouse;
-import ui.MoveDesire;
-import ui.PopUp;
+import java.io.IOException;
+import java.net.ConnectException;
+
+import javafx.event.EventHandler;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import connection.Connection;
 
 public class SpriteTile extends ImageView {
     private Tile tile;
@@ -16,6 +18,7 @@ public class SpriteTile extends ImageView {
     private PopUp slideTile = new PopUp();
     private DragMouse dragTile = new DragMouse(this);
     private MoveDesire moveTile = new MoveDesire();
+    private PlaceHandler placeMove = new PlaceHandler(this);
 
     public SpriteTile(Tile tile) {
         this.tile = tile;
@@ -38,16 +41,52 @@ public class SpriteTile extends ImageView {
             slideTile.apply(this);
             dragTile.apply(this);
 
-            // make tile inactive when move placed
-            setOnMouseReleased(e -> {
-                dragTile.disable(this);
-                slideTile.disable(this);
+            setOnMouseReleased(placeMove);
+        }
+    }
 
-                moveTile.setDesire(e.getSceneX(), e.getSceneY(), 500, 250, 90);
-                moveTile.apply(this);
+    public GameTable getTable() {
+        return (GameTable)this.getParent();
+    }
 
-                setOnMouseReleased(null);
-            });
+    final private class PlaceHandler implements EventHandler<MouseEvent> {
+
+        private final ImageView toPlace;
+
+        public PlaceHandler(ImageView toPlace) {
+            this.toPlace = toPlace;
+        }
+
+        @Override
+        public void handle(MouseEvent event) {
+            GameTable table = getTable();
+            Connection dominoServer = table.getConnection();
+
+            GameResponse placeRequest = new GameResponse(ResponseType.PLACE_MOVE);
+            placeRequest.addUpdateTile(tile);
+            try {
+                dominoServer.sendString(placeRequest.toString());
+                GameResponse placeResponse = table.getResponse(ResponseType.PLACE_MOVE);
+
+                if (placeResponse.status == Status.OK) {
+                    Tile responseTile = placeResponse.getTile(0);
+
+                    // actions on success server request
+                    dragTile.disable(toPlace);
+                    slideTile.disable(toPlace);
+                    moveTile.setDesire(event.getSceneX(), event.getSceneY(), responseTile.getX(),
+                    responseTile.getY(), responseTile.getRotateDegree());
+                    moveTile.apply(toPlace);
+                    setOnMouseReleased(null);
+                }
+                else { // return tile back in deck
+                    table.addTileInDeck(tile);
+                }
+            }
+            catch (IOException ioExp) {
+                System.out.println("Bad server response when placing new tile");
+                table.addTileInDeck(tile); // even if server is unreachable -> keep UI consistent
+            }
         }
     }
 

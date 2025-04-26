@@ -1,9 +1,12 @@
 package ui;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.event.EventHandler;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
@@ -17,11 +20,17 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import model.GameResponse;
+import model.ResponseType;
+import model.Status;
+import connection.Connection;
 
 public class BazarTiles extends Region {
     private int numLeft = 28;
     private List<BackgroundImage> statusImages = new ArrayList<>();
     private BackgroundImage currentImage;
+
+    private TakeHandler takeHandler = new TakeHandler();
 
     public BazarTiles(double width, double hight, double posX, double posY) {
         setPrefSize(width, hight);
@@ -46,8 +55,35 @@ public class BazarTiles extends Region {
             System.out.println("Unable to load status image for Bazar Tiles!");
             e.printStackTrace();
         }
-
         setBackground(new Background(getStatusImage()));
+
+        this.setOnMousePressed(takeHandler);
+    }
+
+    public GameTable getTable() {
+        return (GameTable)this.getParent();
+    }
+
+    final class TakeHandler implements EventHandler<MouseEvent> {
+        @Override
+        public void handle(MouseEvent event) {
+            try {
+                GameTable table = getTable();
+                Connection dominoServer = table.getConnection();
+
+                dominoServer.sendString(new GameResponse(ResponseType.GET_TILE).toString());
+                GameResponse takeResponse = table.getResponse(ResponseType.GET_TILE);
+
+                if (takeResponse.status == Status.OK) {
+                    takeTile();
+                    table.addTileInDeck(takeResponse.getTile(0));
+                }
+            }
+            catch (IOException ioExp) {
+                System.out.println("Bazar tiles failed to communicate server!");
+                ioExp.printStackTrace();
+            }
+        }
     }
 
     public void takeTile() {

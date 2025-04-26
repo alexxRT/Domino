@@ -10,9 +10,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import connection.Connection;
+
 
 public class DominoClient extends Application{
+    private static Connection dominoServer;
     public static void main(String[] args) {
+        String ipAddr = args[1];
+        int port = Integer.parseInt(args[2]);
+
+        dominoServer = new Connection(ipAddr, port);
         launch(args);
     }
 
@@ -33,7 +40,7 @@ public class DominoClient extends Application{
         background.setFitWidth(1000);
         rootGroup.getChildren().add(background);
 
-        GameTable table = new GameTable(1000, 500);
+        GameTable table = new GameTable(dominoServer, 1000, 500);
         rootGroup.getChildren().add(table);
 
         Scene board = new Scene(rootGroup, 1000, 500);

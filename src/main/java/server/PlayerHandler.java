@@ -28,7 +28,7 @@ public class PlayerHandler implements Runnable {
                 if (!inSession()) {
                     // ignoring any requests unless it sends join session
                     if (clientIncomming.getType() != ResponseType.JOIN_SESSION)
-                        conn.sendString(new GameResponse(ResponseType.BAD_MOVE).toString());
+                        conn.sendString(new GameResponse(ResponseType.UNKNOWN, Status.AGAIN).toString());
                     else {
                         session = sessionProvider.joinSession(conn);
                         GameResponse onJoin = session.processCommand(conn, clientIncomming, tiles);

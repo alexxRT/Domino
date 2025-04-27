@@ -44,7 +44,7 @@ public class GameSession {
         try {
             switch (command.getType()) {
                 case PLACE_MOVE:
-                    GameResponse placeResponse = handlePlaceTile(user, command.getTile(0));
+                    GameResponse placeResponse = handlePlaceTile(user, command.getTile());
                     if (game.needResize())
                         user.sendString(game.resizeTileChain().toString());
                     if (game.needTranslate())
@@ -54,14 +54,14 @@ public class GameSession {
                     return handleJoinSession(userTiles);
                 case GET_TILE: // get random tile on request
                     return game.getRandomTiles(userTiles, 1);
-                case BAD_MOVE:
+                case UNKNOWN:
                 default:
                     System.out.println("Command: " + command + " is not handled explicitely");
-                    return new GameResponse(ResponseType.BAD_MOVE);
+                    return new GameResponse(ResponseType.UNKNOWN, Status.AGAIN);
             }
         } catch (Exception e) {
             System.err.println("Error processing command: " + e.getMessage());
-            return new GameResponse(ResponseType.BAD_MOVE);
+            return new GameResponse(ResponseType.UNKNOWN, Status.ERROR);
         }
     }
 
@@ -79,7 +79,7 @@ public class GameSession {
     private GameResponse handlePlaceTile(Connection placingUser, Tile tile) throws IOException {
         GameResponse placeResponse = game.placeTile(tile.getLeftVal(), tile.getRightVal());
 
-        if (placeResponse.getType() != ResponseType.BAD_MOVE) {
+        if (placeResponse.getStatus() == Status.OK) {
             Connection opponent = getOpponent(placingUser);
             opponent.sendString(new GameResponse(ResponseType.MAKE_MOVE).toString());
         }

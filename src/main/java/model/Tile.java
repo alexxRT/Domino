@@ -6,22 +6,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class Tile {
-    private int leftVal;
-    private int rightVal;
-    private Position position;
-    private Dimension dimension;
-    private double rotateDegree;
+    private int leftVal = 7;
+    private int rightVal = 7;
+    private Position position = new Position(0, 0);
+    private Dimension dimension = new Dimension(0, 0);
+    private double rotateDegree = 0;
     private boolean isVertical = false;
     private boolean mutedRight = false;
     private boolean mutedLeft = false;
 
     static private String[] jsonNodes = {"rval", "lval", "x", "y", "rotate", "dimH", "dimW"};
 
+    public Tile() {}
+
     public Tile(int left, int right) {
         this.leftVal = left;
         this.rightVal = right;
-        this.position = new Position(0, 0);
-        this.dimension = new Dimension(0, 0);
     }
 
     public Tile(String bytes) {
@@ -86,7 +86,10 @@ public class Tile {
                         .put("rval", rightVal)
                         .put("lval", leftVal)
                         .put("x", position.getX())
-                        .put("y", position.getY());
+                        .put("y", position.getY())
+                        .put("rotate", rotateDegree)
+                        .put("dimH", dimension.getLength())
+                        .put("dimW", dimension.getWidth());
         return obj.toString();
     }
 

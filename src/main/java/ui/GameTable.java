@@ -3,7 +3,8 @@ package ui;
 import javafx.scene.Group;
 
 import java.io.IOException;
-
+import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import connection.Connection;
@@ -14,12 +15,13 @@ public class GameTable extends Group {
     private HandDeck opponentDeck;
     private BazarTiles tableTiles;
 
+    private List<SpriteTile> placedTiles = new ArrayList<>();
+
     private double width;
     private double hight;
 
-    private serverHandler handler;
-
-    // TODO: add resize and tiles move handler //
+    private serverHandler handlerResponse;
+    private updateHandler handlerUpdate;
 
     public GameTable(Connection server, double width, double hight) {
         this.width = width;
@@ -31,32 +33,39 @@ public class GameTable extends Group {
         getChildren().addAll(playerDeck, opponentDeck, tableTiles);
 
         // to recieve server updates
-        handler = new serverHandler(server);
-        new Thread(handler).start();
+        handlerResponse = new serverHandler(server);
+        new Thread(handlerResponse).start();
 
+        // to handle resize or chain translate
+        handlerUpdate = new updateHandler();
+        new Thread(handlerUpdate).start();
     }
 
     public void addTileInDeck(Tile newTile) {
         playerDeck.addTile(new SpriteTile(newTile));
     }
 
+    public void placeTile(SpriteTile placeTile) {
+        placedTiles.add(placeTile);
+    }
+
     public Connection getConnection() {
-        return handler.server;
+        return handlerResponse.server;
     }
 
     public GameResponse getResponse(ResponseType type) {
         try {
-            GameResponse serverResponse = handler.serverResponses.take();
+            GameResponse serverResponse = handlerResponse.serverResponses.take();
             while (serverResponse.getType() != type) {
-                handler.serverResponses.add(serverResponse);
-                serverResponse = handler.serverResponses.take();
+                handlerResponse.serverResponses.add(serverResponse);
+                serverResponse = handlerResponse.serverResponses.take();
             }
             return serverResponse;
         }
         catch (InterruptedException e) {
             System.out.println("Failed to retrieve response! Interrupted!");
             Thread.currentThread().interrupt();
-            return new GameResponse(ResponseType.BAD_MOVE);
+            return new GameResponse(ResponseType.UNKNOWN);
         }
     }
 
@@ -103,4 +112,19 @@ public class GameTable extends Group {
             }
         }
     }
+
+    private class updateHandler implements Runnable {
+        @Override
+        public void run() {
+            GameResponse updateResponse = getResponse(ResponseType.UPDATE);
+
+            System.out.println("---------------Recieved update for table tiles sizes!-------------------");
+            System.out.println(updateResponse.toString());
+
+            for (SpriteTile placedTile : placedTiles) {
+                placedTile.applyUpdate(updateResponse.getUpdate());
+            }
+        }
+    }
+
 }

@@ -24,7 +24,7 @@ public class DominoGame {
         Tile newTile = new Tile(left, right);
 
         if (!isMoveValid(newTile)) {
-            return new GameResponse(ResponseType.BAD_MOVE);
+            return new GameResponse(ResponseType.PLACE_MOVE, Status.AGAIN);
         }
 
         placeTileOnBoard(newTile);
@@ -33,12 +33,12 @@ public class DominoGame {
 
     public GameResponse getRandomTiles(List<Tile> userTiles, int numGet) {
         if (numGet <= 0 || numGet > bazarTiles.size())
-            return new GameResponse(ResponseType.BAD_MOVE);
+            return new GameResponse(ResponseType.GET_TILE, Status.AGAIN);
         // just in case when user request tile from bazar,
         // but he has valid move to do
         for (Tile tile : userTiles) {
             if (isMoveValid(tile))
-                return new GameResponse(ResponseType.BAD_MOVE);
+                return new GameResponse(ResponseType.GET_TILE, Status.AGAIN);
         }
 
         Random getRandom = new Random();
@@ -49,7 +49,7 @@ public class DominoGame {
             randomIndex = getRandom.nextInt(bazarTiles.size());
             Tile newTile = bazarTiles.remove(randomIndex);
 
-            response.addUpdateTile(newTile);
+            response.setTile(newTile);
             userTiles.add(newTile); // update number of user's tiles
         }
         return response;
@@ -131,7 +131,7 @@ public class DominoGame {
 
     private GameResponse createPlaceMoveResponse(Tile tile) {
         GameResponse response = new GameResponse(ResponseType.PLACE_MOVE);
-        response.addUpdateTile(tile);
+        response.setTile(tile);
         return response;
     }
 
@@ -143,15 +143,13 @@ public class DominoGame {
     }
 
     public GameResponse resizeTileChain() {
-        GameResponse response = new GameResponse(ResponseType.UPDATE_MOVE);
+        GameResponse response = new GameResponse(ResponseType.UPDATE);
         double resizeCoeff = calculateResizeCoefficient();
         placedTiles.forEach(tile -> {
             tile.setLength(resizeCoeff * tile.getLength());
             tile.setWidth(resizeCoeff * tile.getWidth());
         });
-        for (Tile tile : placedTiles) {
-            response.addUpdateTile(tile);
-        }
+        response.setUpdate(resizeCoeff, 0, 0);
         return response;
     }
 
@@ -163,12 +161,11 @@ public class DominoGame {
     }
 
     public GameResponse translateTileChain() {
-        GameResponse response = new GameResponse(ResponseType.UPDATE_MOVE);
-        applyTranslation(calculateTranslation());
+        GameResponse response = new GameResponse(ResponseType.UPDATE);
+        double deltaX = calculateTranslation();
+        applyTranslation(deltaX);
         // Add all updated tiles to response
-        for (Tile tile : placedTiles) {
-            response.addUpdateTile(tile);
-        }
+        response.setUpdate(1, deltaX, 0);
         return response;
     }
 

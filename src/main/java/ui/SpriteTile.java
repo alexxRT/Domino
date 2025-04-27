@@ -3,7 +3,6 @@ package ui;
 import model.*;
 
 import java.io.IOException;
-import java.net.ConnectException;
 
 import javafx.event.EventHandler;
 import javafx.scene.image.Image;
@@ -51,9 +50,9 @@ public class SpriteTile extends ImageView {
 
     final private class PlaceHandler implements EventHandler<MouseEvent> {
 
-        private final ImageView toPlace;
+        private final SpriteTile toPlace;
 
-        public PlaceHandler(ImageView toPlace) {
+        public PlaceHandler(SpriteTile toPlace) {
             this.toPlace = toPlace;
         }
 
@@ -63,14 +62,20 @@ public class SpriteTile extends ImageView {
             Connection dominoServer = table.getConnection();
 
             GameResponse placeRequest = new GameResponse(ResponseType.PLACE_MOVE);
-            placeRequest.addUpdateTile(tile);
+            placeRequest.setTile(toPlace.getTile());
+
             try {
                 dominoServer.sendString(placeRequest.toString());
+
+                // start debugging
+                System.out.println(placeRequest.toString());
+
                 GameResponse placeResponse = table.getResponse(ResponseType.PLACE_MOVE);
 
-                if (placeResponse.status == Status.OK) {
-                    Tile responseTile = placeResponse.getTile(0);
+                if (placeResponse.getStatus() == Status.OK) {
+                    table.placeTile(toPlace);
 
+                    Tile responseTile = placeResponse.getTile();
                     // actions on success server request
                     dragTile.disable(toPlace);
                     slideTile.disable(toPlace);
@@ -94,4 +99,11 @@ public class SpriteTile extends ImageView {
         return this.tile;
     }
 
+    public void applyUpdate(Update upd) {
+       setFitWidth(tile.getWidth() * upd.getResize());
+       setFitHeight(tile.getLength() * upd.getResize());
+
+       setTranslateX(upd.getDeltaX());
+       setTranslateY(upd.getDeltaY());
+    }
 }

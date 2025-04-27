@@ -1,7 +1,6 @@
 package client;
 
 import javafx.application.Application;
-import java.io.File;
 
 
 import ui.GameTable;

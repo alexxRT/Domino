@@ -1,11 +1,10 @@
 package model;
 
 public enum ResponseType {
-    BAD_MOVE,
+    UNKNOWN,
     PLACE_MOVE,
-    UPDATE_MOVE,
+    UPDATE,
     JOIN_SESSION,
     MAKE_MOVE,
     GET_TILE,
-    RESIZE,
 }

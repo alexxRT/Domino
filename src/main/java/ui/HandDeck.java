@@ -13,15 +13,12 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
-import connection.Connection;
+
 
 public class HandDeck extends HBox {
     private List<Tile> tiles = new ArrayList<>();
 
-    private Connection dominoServer;
-
-    public HandDeck(Connection server, double width, double higth, double posX, double posY) {
-        dominoServer = server;
+    public HandDeck(double width, double higth, double posX, double posY) {
         setPrefSize(width, higth);
 
         setLayoutX(posX);

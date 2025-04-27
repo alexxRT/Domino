@@ -70,18 +70,22 @@ public class BazarTiles extends Region {
             try {
                 GameTable table = getTable();
                 Connection dominoServer = table.getConnection();
+                GameResponse tileRequest = new GameResponse(ResponseType.GET_TILE);
 
-                dominoServer.sendString(new GameResponse(ResponseType.GET_TILE).toString());
+                dominoServer.sendString(tileRequest.toString());
+
+                System.out.println(tileRequest.toString());
+
                 GameResponse takeResponse = table.getResponse(ResponseType.GET_TILE);
 
-                if (takeResponse.status == Status.OK) {
+                if (takeResponse.getStatus() == Status.OK) {
                     takeTile();
-                    table.addTileInDeck(takeResponse.getTile(0));
+                    table.addTileInDeck(takeResponse.getTile());
                 }
             }
-            catch (IOException ioExp) {
+            catch (IOException e) {
                 System.out.println("Bazar tiles failed to communicate server!");
-                ioExp.printStackTrace();
+                e.printStackTrace();
             }
         }
     }

@@ -5,3 +5,4 @@ public enum Status {
     AGAIN, // error on client side when requested
     ERROR, // error on server side while processing
 }
+

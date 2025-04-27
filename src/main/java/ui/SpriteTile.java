@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import connection.Connection;
+import game.DominoGame;
 
 public class SpriteTile extends ImageView {
     private Tile tile;
@@ -62,14 +63,19 @@ public class SpriteTile extends ImageView {
             Connection dominoServer = table.getConnection();
 
             GameResponse placeRequest = new GameResponse(ResponseType.PLACE_MOVE);
-            placeRequest.setTile(toPlace.getTile());
+            placeRequest.setTile(tile);
 
             try {
+                // checks if currently my move to do
+                // if not, return back in deck
+                if (!DominoGame.dominoOn) {
+                    table.getChildren().remove(toPlace);
+                    table.addTileInDeck(tile);
+                    return;
+                }
+
                 dominoServer.sendString(placeRequest.toString());
-
-                // start debugging
                 System.out.println(placeRequest.toString());
-
                 GameResponse placeResponse = table.getResponse(ResponseType.PLACE_MOVE);
 
                 if (placeResponse.getStatus() == Status.OK) {
@@ -83,13 +89,18 @@ public class SpriteTile extends ImageView {
                     responseTile.getY(), responseTile.getRotateDegree());
                     moveTile.apply(toPlace);
                     setOnMouseReleased(null);
+
+                    table.removeTileFromDeck(toPlace);
+                    DominoGame.dominoOn = false; // end current move
                 }
                 else { // return tile back in deck
+                    table.getChildren().remove(toPlace);
                     table.addTileInDeck(tile);
                 }
             }
             catch (IOException ioExp) {
                 System.out.println("Bad server response when placing new tile");
+                table.getChildren().remove(toPlace);
                 table.addTileInDeck(tile); // even if server is unreachable -> keep UI consistent
             }
         }

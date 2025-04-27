@@ -40,7 +40,7 @@ public class GameSession {
         try {
             switch (command.getType()) {
                 case PLACE_MOVE:
-                    GameResponse placeResponse = handlePlaceTile(user, command.getTile());
+                    GameResponse placeResponse = handlePlaceTile(user, command.getTile(), userTiles);
                     if (game.needResize())
                         user.sendString(game.resizeTileChain().toString());
                     if (game.needTranslate())
@@ -73,17 +73,21 @@ public class GameSession {
         }
         // or simply send 6 tiles to init hand deck on start
         GameResponse[] newTiles = new GameResponse[DominoGame.initialNumTiles];
-        for (int i = 0; i < DominoGame.initialNumTiles; i ++)
+        for (int i = 0; i < DominoGame.initialNumTiles; i ++) {
             newTiles[i] = game.getRandomTile();
+            userTiles.add(newTiles[i].getTile());
+        }
         return newTiles;
     }
 
-    private GameResponse handlePlaceTile(Connection placingUser, Tile tile) throws IOException {
+    private GameResponse handlePlaceTile(Connection placingUser, Tile tile, List<Tile> userTiles) throws IOException {
         GameResponse placeResponse = game.placeTile(tile.getLeftVal(), tile.getRightVal());
 
         if (placeResponse.getStatus() == Status.OK) {
             Connection opponent = getOpponent(placingUser);
             opponent.sendString(new GameResponse(ResponseType.MAKE_MOVE).toString());
+
+            userTiles.remove(tile); // remove tile from user deck on success placement
         }
 
         return placeResponse;
@@ -93,7 +97,7 @@ public class GameSession {
         if (user == players[0]) {
             return players[1];
         }
-        return players[1];
+        return players[0];
     }
 
     private void insertNewPlayer(Connection newPlayer) {

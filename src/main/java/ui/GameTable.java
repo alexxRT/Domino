@@ -41,11 +41,15 @@ public class GameTable extends Group {
         handlerUpdate = new updateHandler();
         new Thread(handlerUpdate).start();
 
-       startNewGame();
+        startNewGame();
     }
 
     public void addTileInDeck(Tile newTile) {
         playerDeck.addTile(new SpriteTile(newTile));
+    }
+
+    public void removeTileFromDeck(SpriteTile removeTile) {
+        playerDeck.removeTile(removeTile);
     }
 
     public void placeTile(SpriteTile placeTile) {
@@ -67,8 +71,7 @@ public class GameTable extends Group {
         }
         catch (InterruptedException e) {
             System.out.println("Failed to retrieve response! Interrupted!");
-            Thread.currentThread().interrupt();
-            return new GameResponse(ResponseType.UNKNOWN);
+            return new GameResponse(ResponseType.UNKNOWN, Status.ERROR);
         }
     }
 
@@ -107,8 +110,12 @@ public class GameTable extends Group {
             try {
                 while ((serverMessage = server.recieveString()) != null) {
                     System.err.println("Recieved from backend: " + serverMessage);
+                    GameResponse response = new GameResponse(serverMessage);
 
-                    serverResponses.add(new GameResponse(serverMessage));
+                    if (response.getType() == ResponseType.MAKE_MOVE)
+                        DominoGame.dominoOn = true;
+                    else
+                        serverResponses.add(response);
                 }
             }
             catch (IOException e) {

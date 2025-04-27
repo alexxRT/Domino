@@ -10,6 +10,8 @@ public class DominoGame {
     private Tile rightTile;
     private List<Tile> bazarTiles = new ArrayList<>();
 
+    public static boolean dominoOn = false;
+
     public static final int initialNumTiles = 6;
 
     public DominoGame(double width, double height, Position position) {
@@ -67,8 +69,6 @@ public class DominoGame {
         randomTile.setTile(newTile);
         return randomTile;
     }
-
-
 
     private boolean isMoveValid(Tile tile) {
         if (placedTiles.isEmpty()) return true;

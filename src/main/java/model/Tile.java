@@ -28,6 +28,7 @@ public class Tile {
         try {
             JsonNode tile;
             if ((tile = checkFormatValid(bytes)) == null) {
+                System.out.println(bytes);
                 System.out.println("Input json does not contain required fileds for Tile.");
                 return;
             }

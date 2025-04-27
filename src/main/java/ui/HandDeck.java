@@ -34,4 +34,9 @@ public class HandDeck extends HBox {
             getChildren().add(tile);
         }
     }
+
+    public void removeTile(SpriteTile tile) {
+        getChildren().remove(tile);
+        tiles.remove(tile.getTile());
+    }
 }

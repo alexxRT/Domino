@@ -1,20 +1,17 @@
 package ui;
 
 import javafx.event.EventHandler;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.Group;
-import javafx.scene.*;
 
 public class DragMouse {
-    private ImageView toMove;
+    private SpriteTile toMove;
 
     private double anchorMouseX;
     private double anchorMouseY;
 
     private handleMouse eventHandler = new handleMouse();
 
-    public DragMouse(ImageView toMove) {
+    public DragMouse(SpriteTile toMove) {
         this.toMove = toMove;
     }
     final class handleMouse implements EventHandler<MouseEvent> {
@@ -24,7 +21,7 @@ public class DragMouse {
                 // remove tile from deck add to GameTable
                 HandDeck parentDeck = (HandDeck)toMove.getParent();
                 GameTable table = (GameTable)parentDeck.getParent();
-                parentDeck.getChildren().remove(toMove);
+                parentDeck.removeTile(toMove);
                 table.getChildren().add(toMove);
 
                 anchorMouseX = event.getX();
@@ -41,11 +38,11 @@ public class DragMouse {
         }
     }
 
-    public void apply(ImageView toMove) {
+    public void apply(SpriteTile toMove) {
         toMove.setOnMousePressed(eventHandler);
         toMove.setOnMouseDragged(eventHandler);
     }
-    public void disable(ImageView toMove) {
+    public void disable(SpriteTile toMove) {
         toMove.setOnMousePressed(null);
         toMove.setOnMouseDragged(null);
     }

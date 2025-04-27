@@ -24,6 +24,7 @@ import model.GameResponse;
 import model.ResponseType;
 import model.Status;
 import connection.Connection;
+import game.DominoGame;
 
 public class BazarTiles extends Region {
     private int numLeft = 28;
@@ -68,14 +69,17 @@ public class BazarTiles extends Region {
         @Override
         public void handle(MouseEvent event) {
             try {
+                if (!DominoGame.dominoOn) {
+                    System.out.println("Not your move! Can not take new tile!");
+                    return;
+                }
+
                 GameTable table = getTable();
                 Connection dominoServer = table.getConnection();
                 GameResponse tileRequest = new GameResponse(ResponseType.GET_TILE);
 
                 dominoServer.sendString(tileRequest.toString());
-
                 System.out.println(tileRequest.toString());
-
                 GameResponse takeResponse = table.getResponse(ResponseType.GET_TILE);
 
                 if (takeResponse.getStatus() == Status.OK) {

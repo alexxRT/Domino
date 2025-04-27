@@ -5,14 +5,15 @@ import java.util.*;
 
 public class DominoGame {
     private GameBoard board;
-    private List<Tile> placedTiles;
+    private List<Tile> placedTiles = new ArrayList<>();
     private Tile leftTile;
     private Tile rightTile;
-    private List<Tile> bazarTiles;
+    private List<Tile> bazarTiles = new ArrayList<>();
+
+    public static final int initialNumTiles = 6;
 
     public DominoGame(double width, double height, Position position) {
         this.board = new GameBoard(width, height, position);
-        this.placedTiles = new ArrayList<>();
 
         // here we need init all available dominos
         for (int i = 0; i <= 6; i ++)
@@ -31,9 +32,10 @@ public class DominoGame {
         return createPlaceMoveResponse(newTile);
     }
 
-    public GameResponse getRandomTiles(List<Tile> userTiles, int numGet) {
-        if (numGet <= 0 || numGet > bazarTiles.size())
+    public GameResponse getRandomTile(List<Tile> userTiles) {
+        if (bazarTiles.size() == 0)
             return new GameResponse(ResponseType.GET_TILE, Status.AGAIN);
+
         // just in case when user request tile from bazar,
         // but he has valid move to do
         for (Tile tile : userTiles) {
@@ -43,17 +45,29 @@ public class DominoGame {
 
         Random getRandom = new Random();
         int randomIndex;
-        GameResponse response = new GameResponse(ResponseType.GET_TILE);
+        randomIndex = getRandom.nextInt(bazarTiles.size());
+        Tile newTile = bazarTiles.remove(randomIndex);
 
-        for (int i = 0; i < numGet; i ++) {
-            randomIndex = getRandom.nextInt(bazarTiles.size());
-            Tile newTile = bazarTiles.remove(randomIndex);
-
-            response.setTile(newTile);
-            userTiles.add(newTile); // update number of user's tiles
-        }
-        return response;
+        GameResponse randomTile = new GameResponse(ResponseType.GET_TILE);
+        randomTile.setTile(newTile);
+        userTiles.add(newTile); // update number of user's tiles
+        return randomTile;
     }
+
+    public GameResponse getRandomTile() {
+        if (bazarTiles.size() == 0)
+            return new GameResponse(ResponseType.GET_TILE, Status.AGAIN);
+
+        Random getRandom = new Random();
+        int randomIndex;
+        randomIndex = getRandom.nextInt(bazarTiles.size());
+        Tile newTile = bazarTiles.remove(randomIndex);
+
+        GameResponse randomTile = new GameResponse(ResponseType.GET_TILE);
+        randomTile.setTile(newTile);
+        return randomTile;
+    }
+
 
 
     private boolean isMoveValid(Tile tile) {

@@ -93,6 +93,18 @@ public class Tile {
         return obj.toString();
     }
 
+    public JsonNode toJsonNode() {
+        ObjectNode obj = JsonNodeFactory.instance.objectNode()
+                            .put("rval", rightVal)
+                            .put("lval", leftVal)
+                            .put("x", position.getX())
+                            .put("y", position.getY())
+                            .put("rotate", rotateDegree)
+                            .put("dimH", dimension.getLength())
+                            .put("dimW", dimension.getWidth());
+        return obj;
+    }
+
     static public JsonNode checkFormatValid(String bytes) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode tile = mapper.readTree(bytes);

@@ -59,6 +59,14 @@ public class Update {
         return obj.toString();
     }
 
+    public JsonNode toJsonNode() {
+        ObjectNode obj = JsonNodeFactory.instance.objectNode()
+                                .put("resize", resizeCoeff)
+                                .put("deltaX", translateX)
+                                .put("deltaY", translateY);
+        return obj;
+    }
+
     static public JsonNode checkFormatValid(String bytes) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode upd = mapper.readTree(bytes);

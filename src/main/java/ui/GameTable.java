@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import connection.Connection;
+import game.DominoGame;
 import model.*;
 
 public class GameTable extends Group {
@@ -39,6 +40,8 @@ public class GameTable extends Group {
         // to handle resize or chain translate
         handlerUpdate = new updateHandler();
         new Thread(handlerUpdate).start();
+
+       startNewGame();
     }
 
     public void addTileInDeck(Tile newTile) {
@@ -103,6 +106,8 @@ public class GameTable extends Group {
             String serverMessage;
             try {
                 while ((serverMessage = server.recieveString()) != null) {
+                    System.err.println("Recieved from backend: " + serverMessage);
+
                     serverResponses.add(new GameResponse(serverMessage));
                 }
             }
@@ -125,6 +130,36 @@ public class GameTable extends Group {
                 placedTile.applyUpdate(updateResponse.getUpdate());
             }
         }
+    }
+
+    // this function requests on server new tiles on game init
+    // after that, client can recieve responses from server
+    private void startNewGame() {
+        try {
+            GameResponse askJoin = new GameResponse(ResponseType.JOIN_SESSION);
+            getConnection().sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
+
+            System.out.println("Sending on backend: " + askJoin.toString());
+
+            GameResponse response = getResponse(ResponseType.JOIN_SESSION);
+
+            System.out.println("recieved from server: " + response.toString());
+
+            // joined session!
+            if (response.getStatus() == Status.OK) {
+                for (int i = 0; i < DominoGame.initialNumTiles; i++) {
+                    GameResponse newTile = getResponse(ResponseType.GET_TILE);
+                    addTileInDeck(newTile.getTile());
+                }
+            }
+
+            System.out.println("Recieved all tiles!");
+        }
+        catch (IOException e) {
+            System.out.println("Unable start new game, due to network issues!");
+            e.printStackTrace();
+        }
+
     }
 
 }

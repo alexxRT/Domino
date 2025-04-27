@@ -12,8 +12,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class GameResponse {
     private ResponseType type;
-    private Update update;
-    private Tile tile;
+    private Update update = new Update();
+    private Tile tile = new Tile();
     private Status status;
 
     // needs to validate json inpput
@@ -33,8 +33,6 @@ public class GameResponse {
     public GameResponse(String readBytes) {
         try {
             type = ResponseType.UNKNOWN;
-            update = new Update();
-            tile = new Tile();
             status = Status.OK;
 
             JsonNode response;
@@ -66,9 +64,11 @@ public class GameResponse {
     public String toString() {
         ObjectNode response = JsonNodeFactory.instance.objectNode()
                                 .put("type", type.ordinal())
-                                .put("status", status.ordinal())
-                                .put("tile", tile.toString())
-                                .put("update", update.toString());
+                                .put("status", status.ordinal());
+
+        response.set("tile", tile.toJsonNode());
+        response.set("update", update.toJsonNode());
+
         return response.toString();
     }
 

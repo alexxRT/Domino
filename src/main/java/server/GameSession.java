@@ -16,13 +16,12 @@ public class GameSession {
     private int numActivePlayers = 0;
     private DominoGame game;
 
-    private static final int initialNumTiles = 6;
-
-    public GameSession() {};
+    public GameSession() {
+        game = new DominoGame(800, 600, new Position(0, 0));
+    };
 
     private boolean checkVacant() {
-        if (players[0] == null ||
-            players[1] == null)
+        if (numActivePlayers < 2)
                 return true;
         return false;
     }
@@ -34,13 +33,10 @@ public class GameSession {
         insertNewPlayer(newPlayer);
         numActivePlayers += 1;
 
-        if (numActivePlayers == 2)
-            game = new DominoGame(800, 600, new Position(0, 0));
-
         return true;
     }
 
-    public GameResponse processCommand(Connection user, GameResponse command, List<Tile> userTiles) {
+    public GameResponse[] processCommand(Connection user, GameResponse command, List<Tile> userTiles) {
         try {
             switch (command.getType()) {
                 case PLACE_MOVE:
@@ -49,31 +45,37 @@ public class GameSession {
                         user.sendString(game.resizeTileChain().toString());
                     if (game.needTranslate())
                         user.sendString(game.translateTileChain().toString());
-                    return placeResponse;
+                    return new GameResponse[]{placeResponse};
                 case JOIN_SESSION: // get six tiles on the game start
+                    user.sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
                     return handleJoinSession(userTiles);
                 case GET_TILE: // get random tile on request
-                    return game.getRandomTiles(userTiles, 1);
+                    return new GameResponse[]{game.getRandomTile(userTiles)};
                 case UNKNOWN:
                 default:
                     System.out.println("Command: " + command + " is not handled explicitely");
-                    return new GameResponse(ResponseType.UNKNOWN, Status.AGAIN);
+                    GameResponse errorResponse = new GameResponse(ResponseType.UNKNOWN, Status.ERROR);
+                    return new GameResponse[]{errorResponse};
             }
         } catch (Exception e) {
             System.err.println("Error processing command: " + e.getMessage());
-            return new GameResponse(ResponseType.UNKNOWN, Status.ERROR);
+            GameResponse errorResponse = new GameResponse(ResponseType.UNKNOWN, Status.ERROR);
+            return new GameResponse[]{errorResponse};
         }
     }
 
-    private GameResponse handleJoinSession(List<Tile> userTiles) throws IOException {
+    private GameResponse[] handleJoinSession(List<Tile> userTiles) throws IOException {
         // if all players joined -> randomly decide who starts first
-        GameResponse startTheGame = new GameResponse(ResponseType.MAKE_MOVE);
         if (numActivePlayers == 2) {
+            GameResponse startTheGame = new GameResponse(ResponseType.MAKE_MOVE);
             int whoStarts = new Random().nextInt(players.length);
             players[whoStarts].sendString(startTheGame.toString());
         }
-
-        return game.getRandomTiles(userTiles, initialNumTiles);
+        // or simply send 6 tiles to init hand deck on start
+        GameResponse[] newTiles = new GameResponse[DominoGame.initialNumTiles];
+        for (int i = 0; i < DominoGame.initialNumTiles; i ++)
+            newTiles[i] = game.getRandomTile();
+        return newTiles;
     }
 
     private GameResponse handlePlaceTile(Connection placingUser, Tile tile) throws IOException {

@@ -10,13 +10,11 @@ public class PlayerHandler implements Runnable {
     public SessionManager sessionProvider; // checks on session management logic
     public GameSession session; // checks on game tiles placement logic
     public Connection conn;
-    public List<Tile> tiles;
+    public List<Tile> tiles = new ArrayList<Tile>();  // store tiles to later support new tiles gathering
 
     public PlayerHandler(Connection userConn, SessionManager manager) {
         conn = userConn;
         sessionProvider = manager;
-        // store tiles to later support new tiles gathering
-        tiles = new ArrayList<Tile>();
     }
     @Override
     public void run() {
@@ -31,14 +29,14 @@ public class PlayerHandler implements Runnable {
                         conn.sendString(new GameResponse(ResponseType.UNKNOWN, Status.AGAIN).toString());
                     else {
                         session = sessionProvider.joinSession(conn);
-                        GameResponse onJoin = session.processCommand(conn, clientIncomming, tiles);
-                        conn.sendString(onJoin.toString());
+                        for (GameResponse onJoin : session.processCommand(conn, clientIncomming, tiles))
+                            conn.sendString(onJoin.toString());
                     }
                 }
                 else {
                     // Once we are in a session -> handle domino logic requests
-                    GameResponse response = session.processCommand(conn, clientIncomming, tiles);
-                    conn.sendString(response.toString());
+                    for (GameResponse response : session.processCommand(conn, clientIncomming, tiles))
+                        conn.sendString(response.toString());
                 }
             }
         }

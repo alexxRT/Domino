@@ -1,5 +1,6 @@
 package ui;
 
+import javafx.application.Platform;
 import javafx.scene.Group;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ import model.*;
 public class GameTable extends Group {
     private HandDeck playerDeck;
     private HandDeck opponentDeck;
+
     private BazarTiles tableTiles;
 
     private List<SpriteTile> placedTiles = new ArrayList<>();
@@ -44,8 +46,12 @@ public class GameTable extends Group {
         startNewGame();
     }
 
-    public void addTileInDeck(Tile newTile) {
-        playerDeck.addTile(new SpriteTile(newTile));
+    public void addInPlayerDeck(Tile newTile) {
+        playerDeck.addTile(new SpriteTile(newTile, true));
+    }
+
+    public void addInOpponentDeck() {
+        opponentDeck.addTile(new SpriteTile(new Tile()));
     }
 
     public void removeTileFromDeck(SpriteTile removeTile) {
@@ -128,13 +134,28 @@ public class GameTable extends Group {
     private class updateHandler implements Runnable {
         @Override
         public void run() {
-            GameResponse updateResponse = getResponse(ResponseType.UPDATE);
 
-            System.out.println("---------------Recieved update for table tiles sizes!-------------------");
-            System.out.println(updateResponse.toString());
+            while (true) {
+                GameResponse updateResponse = getResponse(ResponseType.UPDATE);
+                Tile responseTile = updateResponse.getTile();
 
-            for (SpriteTile placedTile : placedTiles) {
-                placedTile.applyUpdate(updateResponse.getUpdate());
+                if (responseTile.getLeftVal() + responseTile.getRightVal() <= 12) {
+                    SpriteTile placeTile = new SpriteTile(responseTile);
+                    Platform.runLater(() -> {
+                        opponentDeck.removeTile(new SpriteTile(new Tile()));
+                        getChildren().add(placeTile);
+                        placeTile.translateDesire(opponentDeck.getLayoutX() + opponentDeck.getWidth() / 2,
+                        opponentDeck.getLayoutY() + opponentDeck.getHeight() / 2,
+                        responseTile.getX(), responseTile.getY(), responseTile.getRotateDegree());
+                    });
+                }
+
+                // apply geometrical update on placed tiles if needed
+                if (updateResponse.getUpdate().getResize() != 0
+                || updateResponse.getUpdate().getDeltaX() != 0) {
+                    for (SpriteTile placedTile : placedTiles)
+                        placedTile.applyUpdate(updateResponse.getUpdate());
+                }
             }
         }
     }
@@ -156,7 +177,8 @@ public class GameTable extends Group {
             if (response.getStatus() == Status.OK) {
                 for (int i = 0; i < DominoGame.initialNumTiles; i++) {
                     GameResponse newTile = getResponse(ResponseType.GET_TILE);
-                    addTileInDeck(newTile.getTile());
+                    addInPlayerDeck(newTile.getTile());
+                    addInOpponentDeck();
                 }
             }
 

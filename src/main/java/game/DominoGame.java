@@ -40,9 +40,14 @@ public class DominoGame {
 
         // just in case when user request tile from bazar,
         // but he has valid move to do
+        System.out.println("Number tiles user has " + userTiles.size());
+        System.out.println(userTiles);
+
         for (Tile tile : userTiles) {
-            if (isMoveValid(tile))
+            if (isMoveValid(tile)) {
+                System.out.println("User has valid move!");
                 return new GameResponse(ResponseType.GET_TILE, Status.AGAIN);
+            }
         }
 
         Random getRandom = new Random();

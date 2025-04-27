@@ -85,7 +85,11 @@ public class GameSession {
 
         if (placeResponse.getStatus() == Status.OK) {
             Connection opponent = getOpponent(placingUser);
-            opponent.sendString(new GameResponse(ResponseType.MAKE_MOVE).toString());
+            GameResponse newTilePlaced = new GameResponse(ResponseType.UPDATE);
+            newTilePlaced.setTile(placeResponse.getTile());
+
+            opponent.sendString(newTilePlaced.toString()); // send opponent user move to update his/her table
+            opponent.sendString(new GameResponse(ResponseType.MAKE_MOVE).toString()); // transfer move right to next player
 
             userTiles.remove(tile); // remove tile from user deck on success placement
         }

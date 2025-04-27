@@ -1,5 +1,6 @@
 package ui;
 
+import model.Position;
 import model.Tile;
 
 import javafx.geometry.Pos;
@@ -38,5 +39,13 @@ public class HandDeck extends HBox {
     public void removeTile(SpriteTile tile) {
         getChildren().remove(tile);
         tiles.remove(tile.getTile());
+    }
+
+    public List<Tile> getTiles() {
+        return tiles;
+    }
+
+    public Position getPosition() {
+        return new Position(getLayoutX(), getLayoutY());
     }
 }

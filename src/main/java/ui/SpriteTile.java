@@ -20,8 +20,11 @@ public class SpriteTile extends ImageView {
     private MoveDesire moveTile = new MoveDesire();
     private PlaceHandler placeMove = new PlaceHandler(this);
 
-    public SpriteTile(Tile tile) {
+    private boolean annimated = false;
+
+    public SpriteTile(Tile tile, boolean applyAnnimation) {
         this.tile = tile;
+        annimated = applyAnnimation;
 
         //String imagePath = "sprite/" + left + "_" + right + ".png";
         try {
@@ -36,12 +39,27 @@ public class SpriteTile extends ImageView {
             e.printStackTrace();
         }
 
-        // temperary DURTY hack to destinguish player and enemies tiles
-        if (this.tile.getLeftVal() + this.tile.getRightVal() >= 0) {
+        if (annimated) {
             slideTile.apply(this);
             dragTile.apply(this);
 
             setOnMouseReleased(placeMove);
+        }
+    }
+
+    public SpriteTile(Tile tile) {
+        this.tile = tile;
+        //String imagePath = "sprite/" + left + "_" + right + ".png";
+        try {
+            String imagePath;
+            if (this.tile.getLeftVal() + this.tile.getRightVal() > 12)
+                imagePath = getClass().getResource("/dominoDown.png").toExternalForm();
+            else
+                imagePath = getClass().getResource("/dominoTile.png").toExternalForm();
+            setImage(new Image(imagePath));
+        } catch (Exception e) {
+            System.out.println("Bad image init for tile!");
+            e.printStackTrace();
         }
     }
 
@@ -70,7 +88,7 @@ public class SpriteTile extends ImageView {
                 // if not, return back in deck
                 if (!DominoGame.dominoOn) {
                     table.getChildren().remove(toPlace);
-                    table.addTileInDeck(tile);
+                    table.addInPlayerDeck(tile);
                     return;
                 }
 
@@ -80,30 +98,38 @@ public class SpriteTile extends ImageView {
 
                 if (placeResponse.getStatus() == Status.OK) {
                     table.placeTile(toPlace);
-
                     Tile responseTile = placeResponse.getTile();
+                    toPlace.translateDesire(event.getSceneX(), event.getSceneY(), responseTile.getX(),
+                    responseTile.getY(), responseTile.getRotateDegree());
+
                     // actions on success server request
+                    table.removeTileFromDeck(toPlace);
+
+                    // turn off animation effects
                     dragTile.disable(toPlace);
                     slideTile.disable(toPlace);
-                    moveTile.setDesire(event.getSceneX(), event.getSceneY(), responseTile.getX(),
-                    responseTile.getY(), responseTile.getRotateDegree());
-                    moveTile.apply(toPlace);
                     setOnMouseReleased(null);
 
-                    table.removeTileFromDeck(toPlace);
                     DominoGame.dominoOn = false; // end current move
                 }
                 else { // return tile back in deck
                     table.getChildren().remove(toPlace);
-                    table.addTileInDeck(tile);
+                    table.addInPlayerDeck(tile);
                 }
             }
             catch (IOException ioExp) {
                 System.out.println("Bad server response when placing new tile");
                 table.getChildren().remove(toPlace);
-                table.addTileInDeck(tile); // even if server is unreachable -> keep UI consistent
+                table.addInPlayerDeck(tile); // even if server is unreachable -> keep UI consistent
             }
         }
+    }
+
+    public void translateDesire(double originX, double originY, double targetX, double targetY, double rotateDegree) {
+        setLayoutX(originX);
+        setLayoutY(originY);
+        moveTile.setDesire(originX, originY, targetX, targetY, rotateDegree);
+        moveTile.apply(this);
     }
 
     public Tile getTile() {

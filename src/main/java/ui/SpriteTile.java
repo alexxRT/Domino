@@ -21,6 +21,7 @@ public class SpriteTile extends ImageView {
     private PlaceHandler placeMove = new PlaceHandler(this);
 
     private boolean annimated = false;
+    private int tileID = 0;
 
     public SpriteTile(Tile tile, boolean applyAnnimation) {
         this.tile = tile;
@@ -88,7 +89,7 @@ public class SpriteTile extends ImageView {
                 // if not, return back in deck
                 if (!DominoGame.dominoOn) {
                     table.getChildren().remove(toPlace);
-                    table.addInPlayerDeck(tile);
+                    table.addPlayerDeck(tile);
                     return;
                 }
 
@@ -114,13 +115,13 @@ public class SpriteTile extends ImageView {
                 }
                 else { // return tile back in deck
                     table.getChildren().remove(toPlace);
-                    table.addInPlayerDeck(tile);
+                    table.addPlayerDeck(tile);
                 }
             }
             catch (IOException ioExp) {
                 System.out.println("Bad server response when placing new tile");
                 table.getChildren().remove(toPlace);
-                table.addInPlayerDeck(tile); // even if server is unreachable -> keep UI consistent
+                table.addPlayerDeck(tile); // even if server is unreachable -> keep UI consistent
             }
         }
     }
@@ -136,11 +137,32 @@ public class SpriteTile extends ImageView {
         return this.tile;
     }
 
+    public int getID() { return tileID; }
+    public void setID(int newID) { tileID = newID; }
+
     public void applyUpdate(Update upd) {
        setFitWidth(tile.getWidth() * upd.getResize());
        setFitHeight(tile.getLength() * upd.getResize());
 
        setTranslateX(upd.getDeltaX());
        setTranslateY(upd.getDeltaY());
+    }
+    // the problem is that tiles comparison happens implicitely and result is not controlled
+    // need to properly override equals method
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+
+        SpriteTile toCompare = (SpriteTile)obj;
+
+        if (tile == toCompare.getTile() &&
+            tileID == toCompare.getID())
+            return true;
+        return false;
     }
 }

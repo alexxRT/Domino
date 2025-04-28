@@ -116,4 +116,20 @@ public class Tile {
         }
         return tile;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+
+        Tile toCompare = (Tile)obj;
+
+        if ((toCompare.getLeftVal() == leftVal && toCompare.getRightVal() == rightVal) ||
+            (toCompare.getLeftVal() == rightVal && toCompare.getRightVal() == leftVal))
+                return true;
+        return false;
+    }
 }

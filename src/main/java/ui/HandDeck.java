@@ -17,7 +17,7 @@ import java.util.List;
 
 
 public class HandDeck extends HBox {
-    private List<Tile> tiles = new ArrayList<>();
+    protected List<Tile> tiles = new ArrayList<>();
 
     public HandDeck(double width, double higth, double posX, double posY) {
         setPrefSize(width, higth);
@@ -27,18 +27,6 @@ public class HandDeck extends HBox {
 
         setAlignment(Pos.CENTER);
         setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-    }
-
-    public void addTile(SpriteTile tile) {
-        if (!tiles.contains(tile.getTile())) {
-            tiles.add(tile.getTile());
-            getChildren().add(tile);
-        }
-    }
-
-    public void removeTile(SpriteTile tile) {
-        getChildren().remove(tile);
-        tiles.remove(tile.getTile());
     }
 
     public List<Tile> getTiles() {

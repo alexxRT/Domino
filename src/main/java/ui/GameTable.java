@@ -13,10 +13,10 @@ import game.DominoGame;
 import model.*;
 
 public class GameTable extends Group {
-    private HandDeck playerDeck;
-    private HandDeck opponentDeck;
+    private HandDeckPlayer playerDeck;
+    private HandDeckOpponent opponentDeck;
 
-    private BazarTiles tableTiles;
+    private BazarTiles bazarTiles;
 
     private List<SpriteTile> placedTiles = new ArrayList<>();
 
@@ -30,10 +30,10 @@ public class GameTable extends Group {
         this.width = width;
         this.hight = hight;
 
-        initPlayerDeck();
-        initTableTiles();
+        initDecks();
+        initBazar();
 
-        getChildren().addAll(playerDeck, opponentDeck, tableTiles);
+        getChildren().addAll(playerDeck, opponentDeck, bazarTiles);
 
         // to recieve server updates
         handlerResponse = new serverHandler(server);
@@ -46,12 +46,12 @@ public class GameTable extends Group {
         startNewGame();
     }
 
-    public void addInPlayerDeck(Tile newTile) {
+    public void addPlayerDeck(Tile newTile) {
         playerDeck.addTile(new SpriteTile(newTile, true));
     }
 
-    public void addInOpponentDeck() {
-        opponentDeck.addTile(new SpriteTile(new Tile()));
+    public void addOpponentDeck() {
+        opponentDeck.addTile();
     }
 
     public void removeTileFromDeck(SpriteTile removeTile) {
@@ -81,25 +81,24 @@ public class GameTable extends Group {
         }
     }
 
-    private void initTableTiles() {
+    private void initBazar() {
         double tilesHight = hight / 4;
         double tilesWidth = hight / 4;
         double tilesPosX  = 10;
         double tilesPosY  = tilesHight + hight / 8;
 
-        tableTiles = new BazarTiles(tilesWidth, tilesHight, tilesPosX, tilesPosY);
+        bazarTiles = new BazarTiles(tilesWidth, tilesHight, tilesPosX, tilesPosY);
     }
 
-    private void initPlayerDeck () {
+    private void initDecks () {
         double deckHight  = hight / 4;
         double deckWidth  = width * 0.9;
         double playerPosX = 0.05 * width;
         double playerPosY = 3 * hight / 4 - 10; // 10 is a small offset from screen buttom
 
-        playerDeck = new HandDeck(deckWidth, deckHight, playerPosX, playerPosY);
-
+        playerDeck = new HandDeckPlayer(deckWidth, deckHight, playerPosX, playerPosY);
         playerPosY = 10;
-        opponentDeck = new HandDeck(deckWidth, deckHight, playerPosX, playerPosY);
+        opponentDeck = new HandDeckOpponent(deckWidth, deckHight, playerPosX, playerPosY);
     }
 
     private class serverHandler implements Runnable {
@@ -142,20 +141,26 @@ public class GameTable extends Group {
                 if (responseTile.getLeftVal() + responseTile.getRightVal() <= 12) {
                     SpriteTile placeTile = new SpriteTile(responseTile);
                     Platform.runLater(() -> {
-                        opponentDeck.removeTile(new SpriteTile(new Tile()));
+                        opponentDeck.removeTile();
                         getChildren().add(placeTile);
                         placeTile.translateDesire(opponentDeck.getLayoutX() + opponentDeck.getWidth() / 2,
                         opponentDeck.getLayoutY() + opponentDeck.getHeight() / 2,
                         responseTile.getX(), responseTile.getY(), responseTile.getRotateDegree());
                     });
                 }
-
-                // apply geometrical update on placed tiles if needed
-                if (updateResponse.getUpdate().getResize() != 0
-                || updateResponse.getUpdate().getDeltaX() != 0) {
-                    for (SpriteTile placedTile : placedTiles)
-                        placedTile.applyUpdate(updateResponse.getUpdate());
+                else { // if tile value 7 | 7, opponent took tile -> update on client
+                    Platform.runLater(() -> {
+                        opponentDeck.addTile();
+                    });
                 }
+                // RESIZE AND TRANSLATE WORKS INCORRECT
+                // TODO: DEBUG THIS; STATUS: POSTPONED
+                // apply geometrical update on placed tiles if needed
+                //if (updateResponse.getUpdate().getResize() != 0
+                //|| updateResponse.getUpdate().getDeltaX() != 0) {
+                //    for (SpriteTile placedTile : placedTiles)
+                //        placedTile.applyUpdate(updateResponse.getUpdate());
+                //}
             }
         }
     }
@@ -177,8 +182,8 @@ public class GameTable extends Group {
             if (response.getStatus() == Status.OK) {
                 for (int i = 0; i < DominoGame.initialNumTiles; i++) {
                     GameResponse newTile = getResponse(ResponseType.GET_TILE);
-                    addInPlayerDeck(newTile.getTile());
-                    addInOpponentDeck();
+                    addPlayerDeck(newTile.getTile());
+                    addOpponentDeck();
                 }
             }
 

@@ -84,7 +84,8 @@ public class BazarTiles extends Region {
 
                 if (takeResponse.getStatus() == Status.OK) {
                     takeTile();
-                    table.addInPlayerDeck(takeResponse.getTile());
+                    System.out.println("Adding tile after taking from bazar!");
+                    table.addPlayerDeck(takeResponse.getTile());
                 }
             }
             catch (IOException e) {

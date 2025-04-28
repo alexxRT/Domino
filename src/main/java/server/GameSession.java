@@ -41,16 +41,16 @@ public class GameSession {
             switch (command.getType()) {
                 case PLACE_MOVE:
                     GameResponse placeResponse = handlePlaceTile(user, command.getTile(), userTiles);
-                    if (game.needResize())
-                        user.sendString(game.resizeTileChain().toString());
-                    if (game.needTranslate())
-                        user.sendString(game.translateTileChain().toString());
+                    //if (game.needResize())
+                    //    user.sendString(game.resizeTileChain().toString());
+                    //if (game.needTranslate())
+                    //    user.sendString(game.translateTileChain().toString());
                     return new GameResponse[]{placeResponse};
                 case JOIN_SESSION: // get six tiles on the game start
                     user.sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
                     return handleJoinSession(userTiles);
                 case GET_TILE: // get random tile on request
-                    return new GameResponse[]{game.getRandomTile(userTiles)};
+                    return handleGetTile(user, userTiles);
                 case UNKNOWN:
                 default:
                     System.out.println("Command: " + command + " is not handled explicitely");
@@ -78,6 +78,18 @@ public class GameSession {
             userTiles.add(newTiles[i].getTile());
         }
         return newTiles;
+    }
+
+    private GameResponse[] handleGetTile(Connection user, List<Tile> userTiles) throws IOException {
+        Connection opponent = getOpponent(user);
+        GameResponse takeResponse = game.getRandomTile(userTiles);
+
+        if (takeResponse.getStatus() == Status.OK) {
+            GameResponse tileTaken = new GameResponse(ResponseType.UPDATE);
+            opponent.sendString(tileTaken.toString());
+        }
+
+        return new GameResponse[]{takeResponse};
     }
 
     private GameResponse handlePlaceTile(Connection placingUser, Tile tile, List<Tile> userTiles) throws IOException {

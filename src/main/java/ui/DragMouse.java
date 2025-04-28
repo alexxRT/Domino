@@ -19,7 +19,7 @@ public class DragMouse {
         public void handle(MouseEvent event) {
             if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
                 // remove tile from deck add to GameTable
-                HandDeck parentDeck = (HandDeck)toMove.getParent();
+                HandDeckPlayer parentDeck = (HandDeckPlayer)toMove.getParent();
                 GameTable table = (GameTable)parentDeck.getParent();
                 parentDeck.removeTile(toMove);
                 table.getChildren().add(toMove);

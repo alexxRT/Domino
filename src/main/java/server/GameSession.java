@@ -17,7 +17,7 @@ public class GameSession {
     private DominoGame game;
 
     public GameSession() {
-        game = new DominoGame(800, 600, new Position(0, 0));
+        game = new DominoGame(1000, 500, new Position(0, 0));
     };
 
     private boolean checkVacant() {

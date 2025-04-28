@@ -9,7 +9,7 @@ public class Tile {
     private int leftVal = 7;
     private int rightVal = 7;
     private Position position = new Position(0, 0);
-    private Dimension dimension = new Dimension(0, 0);
+    private Dimension dimension = new Dimension(50, 100); // initial tiles size
     private double rotateDegree = 0;
     private boolean isVertical = false;
     private boolean mutedRight = false;

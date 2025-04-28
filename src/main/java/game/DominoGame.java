@@ -135,7 +135,7 @@ public class DominoGame {
     private void setupTilePosition(Tile newTile, Tile muteTile) {
         newTile.setY(muteTile.getY());
         double deltaX = newTile.getRotateDegree() == 0 ?
-            newTile.getWidth() / 2 : newTile.getLength() / 2;
+            newTile.getWidth() : newTile.getLength();
         deltaX += muteTile.isVertical() ?
             muteTile.getWidth() / 2 : muteTile.getLength() / 2;
 

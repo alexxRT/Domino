@@ -10,7 +10,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        jdk = (pkgs.openjdk11.override { enableJavaFX = true; }); 
+        jdk = (pkgs.openjdk17.override { enableJavaFX = true; }); 
         maven = pkgs.maven;
       in {
         devShells.default = pkgs.mkShell {

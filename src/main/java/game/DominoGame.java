@@ -20,7 +20,7 @@ public class DominoGame {
         // here we need init all available dominos
         for (int i = 0; i <= 6; i ++)
             for (int j = i; j <= 6; j ++)
-               bazarTiles.add(new Tile(i, j));
+               bazarTiles.add(new Tile(i, j)); // left <= right
     }
 
     public GameResponse placeTile(int left, int right) {

@@ -5,14 +5,14 @@ import java.util.*;
 import connection.Connection;
 
 public class SessionManager {
-    private static List<GameSession> sessions = new ArrayList<>();
+    private static ArrayList<GameSession> sessions = new ArrayList<>();
 
     public GameSession joinSession(Connection newPLayer) {
         if (sessions.size() == 0) {
             return addCreateSession(newPLayer);
         }
 
-        GameSession lastSession = sessions.getLast();
+        GameSession lastSession = sessions.get(sessions.size() - 1);
         if (!lastSession.addPlayer(newPLayer)) {
             return addCreateSession(newPLayer);
         }

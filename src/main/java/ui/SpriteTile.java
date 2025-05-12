@@ -32,8 +32,10 @@ public class SpriteTile extends ImageView {
             String imagePath;
             if (this.tile.getLeftVal() < 0 || this.tile.getRightVal() < 0)
                 imagePath = getClass().getResource("/dominoDown.png").toExternalForm();
-            else
-                imagePath = getClass().getResource("/dominoTile.png").toExternalForm();
+            else {
+                var path = String.format("/dominoTile/%d-%d.png", tile.getLeftVal(), tile.getRightVal());
+                imagePath = getClass().getResource(path).toExternalForm();
+            }
             setImage(new Image(imagePath));
         } catch (Exception e) {
             System.out.println("Bad image init for tile!");
@@ -55,8 +57,10 @@ public class SpriteTile extends ImageView {
             String imagePath;
             if (this.tile.getLeftVal() + this.tile.getRightVal() > 12)
                 imagePath = getClass().getResource("/dominoDown.png").toExternalForm();
-            else
-                imagePath = getClass().getResource("/dominoTile.png").toExternalForm();
+            else {
+                var path = String.format("/dominoTile/%d-%d.png", tile.getLeftVal(), tile.getRightVal());
+                imagePath = getClass().getResource(path).toExternalForm();
+            }
             setImage(new Image(imagePath));
         } catch (Exception e) {
             System.out.println("Bad image init for tile!");

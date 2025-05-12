@@ -11,8 +11,9 @@ public class HandDeckOpponent extends HandDeck {
 
     // no matter which to remove
     public void removeTile() {
-        getChildren().removeLast();
-        tiles.removeLast();
+        var children = getChildren();
+        children.remove(children.size() - 1);
+        tiles.remove(tiles.size() - 1);
     }
 
 

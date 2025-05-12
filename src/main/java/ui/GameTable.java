@@ -139,6 +139,7 @@ public class GameTable extends Group {
                 Tile responseTile = updateResponse.getTile();
 
                 if (responseTile.getLeftVal() + responseTile.getRightVal() <= 12) {
+                    // System.out.println(responseTile);
                     SpriteTile placeTile = new SpriteTile(responseTile);
                     Platform.runLater(() -> {
                         opponentDeck.removeTile();

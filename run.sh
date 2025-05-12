@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 DEFAULT_IP="127.0.0.1"
 DEFAULT_PORT="12345"

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class Tile {
+    // left <= right
     private int leftVal = 7;
     private int rightVal = 7;
     private Position position = new Position(0, 0);

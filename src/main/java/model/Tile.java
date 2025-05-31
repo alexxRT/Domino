@@ -6,23 +6,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class Tile {
-    // left <= right
-    private int leftVal = 7;
-    private int rightVal = 7;
+    private int highVal = 7;
+    private int lowVal = 7;
+
     private Position position = new Position(0, 0);
     private Dimension dimension = new Dimension(50, 100); // initial tiles size
     private double rotateDegree = 0;
     private boolean isVertical = false;
-    private boolean mutedRight = false;
-    private boolean mutedLeft = false;
+    private boolean isHighConnected = false;
+    private boolean isLowConnected = false;
 
-    static private String[] jsonNodes = {"rval", "lval", "x", "y", "rotate", "dimH", "dimW"};
+    static private String[] jsonNodes = {"highVal", "lowVal", "x", "y", "rotate", "dimH", "dimW"};
 
     public Tile() {}
 
-    public Tile(int left, int right) {
-        this.leftVal = left;
-        this.rightVal = right;
+    public Tile(int low, int high) {
+        this.lowVal = low;
+        this.highVal = high;
     }
 
     public Tile(String bytes) {
@@ -34,8 +34,8 @@ public class Tile {
                 return;
             }
 
-            leftVal = tile.get("lval").asInt();
-            rightVal = tile.get("rval").asInt();
+            lowVal = tile.get("lowVal").asInt();
+            highVal = tile.get("highVal").asInt();
             position = new Position(tile.get("x").asDouble(), tile.get("y").asDouble());
             rotateDegree = tile.get("rotate").asDouble();
             dimension = new Dimension(tile.get("dimH").asDouble(), tile.get("dimW").asDouble());
@@ -47,28 +47,39 @@ public class Tile {
         }
     }
 
-    public boolean areMutable(Tile nextTile) {
-        if ((rightVal == nextTile.getLeftVal() || rightVal == nextTile.getRightVal())
-            && !mutedRight)
-            return true;
+    public boolean isConnected(Tile nextTile) {
+        System.out.println("Checking mutability between tiles:");
+        System.out.println("Current tile - lowVal: " + lowVal + ", highVal: " + highVal + 
+                         ", isLowConnected: " + isLowConnected + ", isHighConnected: " + isHighConnected);
+        System.out.println("Next tile - lowVal: " + nextTile.getLowVal() + 
+                         ", highVal: " + nextTile.getHighVal());
 
-        if ((leftVal == nextTile.getLeftVal() || leftVal == nextTile.getRightVal())
-            && !mutedLeft)
+        if ((highVal == nextTile.getLowVal() || highVal == nextTile.getHighVal())
+            && !isHighConnected) {
+            System.out.println("Tiles are mutable through high side");
             return true;
+        }
 
+        if ((lowVal == nextTile.getLowVal() || lowVal == nextTile.getHighVal())
+            && !isLowConnected) {
+            System.out.println("Tiles are mutable through low side");
+            return true;
+        }
+
+        System.out.println("Tiles are not mutable");
         return false;
     }
 
     // Getters
-    public int getLeftVal() { return leftVal; }
-    public int getRightVal() { return rightVal; }
+    public int getLowVal() { return lowVal; }
+    public int getHighVal() { return highVal; }
     public double getX() { return position.getX(); }
     public double getY() { return position.getY(); }
     public double getWidth() { return dimension.getWidth(); }
     public double getLength() { return dimension.getLength(); }
     public double getSize() { return dimension.getWidth() * dimension.getLength(); }
-    public boolean getMutedRight() { return mutedRight; }
-    public boolean getMutedLeft() { return mutedLeft; }
+    public boolean getHighConnected() { return isHighConnected; }
+    public boolean getLowConnected() { return isLowConnected; }
     public boolean isVertical() { return isVertical; }
     public double getRotateDegree() { return rotateDegree; }
 
@@ -76,8 +87,8 @@ public class Tile {
     public void setX(double x) { position.setX(x); }
     public void setY(double y) { position.setY(y); }
     public void setRotate(double degree) { this.rotateDegree = degree; }
-    public void setMutedRight() { this.mutedRight = true; }
-    public void setMutedLeft() { this.mutedLeft = true; }
+    public void setHighConnected() { this.isHighConnected = true; }
+    public void setLowConnected() { this.isLowConnected = true; }
     public void setWidth(double width) { dimension.setWidth(width); }
     public void setLength(double length) { dimension.setLength(length); }
     public void setVertical(boolean vertical) { this.isVertical = vertical; }
@@ -85,25 +96,29 @@ public class Tile {
     @Override
     public String toString() {
         ObjectNode obj = JsonNodeFactory.instance.objectNode()
-                        .put("rval", rightVal)
-                        .put("lval", leftVal)
+                        .put("highVal", highVal)
+                        .put("lowVal", lowVal)
                         .put("x", position.getX())
                         .put("y", position.getY())
                         .put("rotate", rotateDegree)
                         .put("dimH", dimension.getLength())
-                        .put("dimW", dimension.getWidth());
+                        .put("dimW", dimension.getWidth())
+                        .put("isHighConnected", getHighConnected())
+                        .put("isLowConnected", getLowConnected());
         return obj.toString();
     }
 
     public JsonNode toJsonNode() {
         ObjectNode obj = JsonNodeFactory.instance.objectNode()
-                            .put("rval", rightVal)
-                            .put("lval", leftVal)
+                            .put("highVal", highVal)
+                            .put("lowVal", lowVal)
                             .put("x", position.getX())
                             .put("y", position.getY())
                             .put("rotate", rotateDegree)
                             .put("dimH", dimension.getLength())
-                            .put("dimW", dimension.getWidth());
+                            .put("dimW", dimension.getWidth())
+                            .put("isHighConnected", getHighConnected())
+                            .put("isLowConnected", getLowConnected());
         return obj;
     }
 
@@ -128,8 +143,8 @@ public class Tile {
 
         Tile toCompare = (Tile)obj;
 
-        if ((toCompare.getLeftVal() == leftVal && toCompare.getRightVal() == rightVal) ||
-            (toCompare.getLeftVal() == rightVal && toCompare.getRightVal() == leftVal))
+        if ((toCompare.getLowVal() == lowVal && toCompare.getHighVal() == highVal) ||
+            (toCompare.getLowVal() == highVal && toCompare.getHighVal() == lowVal))
                 return true;
         return false;
     }

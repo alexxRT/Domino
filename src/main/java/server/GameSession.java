@@ -8,8 +8,6 @@ import connection.Connection;
 import game.DominoGame;
 import model.*;
 
-
-
 public class GameSession {
     private Connection[] players = new Connection[2];
 
@@ -41,12 +39,14 @@ public class GameSession {
             switch (command.getType()) {
                 case PLACE_MOVE:
                     GameResponse placeResponse = handlePlaceTile(user, command.getTile(), userTiles);
+                    System.out.println("[AMADEY] CHAIN leftTile = " + game.leftTile + " rightTile = " + game.rightTile);
                     //if (game.needResize())
                     //    user.sendString(game.resizeTileChain().toString());
                     //if (game.needTranslate())
                     //    user.sendString(game.translateTileChain().toString());
                     return new GameResponse[]{placeResponse};
                 case JOIN_SESSION: // get six tiles on the game start
+                    System.out.println("[AMADEY] NEW JOIN SESSION");
                     user.sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
                     return handleJoinSession(userTiles);
                 case GET_TILE: // get random tile on request
@@ -76,6 +76,7 @@ public class GameSession {
         for (int i = 0; i < DominoGame.initialNumTiles; i ++) {
             newTiles[i] = game.getRandomTile();
             userTiles.add(newTiles[i].getTile());
+            System.out.println("[AMADEY] NEW DOMINO TILE: " + newTiles[i].toString());
         }
         return newTiles;
     }
@@ -93,7 +94,7 @@ public class GameSession {
     }
 
     private GameResponse handlePlaceTile(Connection placingUser, Tile tile, List<Tile> userTiles) throws IOException {
-        GameResponse placeResponse = game.placeTile(tile.getLeftVal(), tile.getRightVal());
+        GameResponse placeResponse = game.placeTile(tile.getLowVal(), tile.getHighVal());
 
         if (placeResponse.getStatus() == Status.OK) {
             Connection opponent = getOpponent(placingUser);

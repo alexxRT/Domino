@@ -6,8 +6,8 @@ import java.util.*;
 public class DominoGame {
     private GameBoard board;
     private List<Tile> placedTiles = new ArrayList<>();
-    private Tile leftTile;
-    private Tile rightTile;
+    public Tile leftTile;
+    public Tile rightTile;
     private List<Tile> bazarTiles = new ArrayList<>();
 
     public static boolean dominoOn = false;
@@ -47,6 +47,8 @@ public class DominoGame {
             if (isMoveValid(tile)) {
                 System.out.println("User has valid move!");
                 return new GameResponse(ResponseType.GET_TILE, Status.AGAIN);
+            } else {
+                System.out.println("User hasn't valid move!");
             }
         }
 
@@ -77,7 +79,7 @@ public class DominoGame {
 
     private boolean isMoveValid(Tile tile) {
         if (placedTiles.isEmpty()) return true;
-        return leftTile.areMutable(tile) || rightTile.areMutable(tile);
+        return leftTile.isConnected(tile) || rightTile.isConnected(tile);
     }
 
     private void placeTileOnBoard(Tile newTile) {
@@ -95,7 +97,7 @@ public class DominoGame {
     private void setupFirstTile(Tile tile) {
         leftTile = tile;
         rightTile = tile;
-        boolean isDouble = tile.getRightVal() == tile.getLeftVal();
+        boolean isDouble = tile.getHighVal() == tile.getLowVal();
         tile.setRotate(isDouble ? 0 : -90);
         tile.setX(board.getPosition().getX() + board.getWidth() / 2);
         tile.setY(board.getPosition().getY() + board.getHeight() / 2);
@@ -103,27 +105,27 @@ public class DominoGame {
     }
 
     private Tile findMutableTile(Tile newTile) {
-        if (leftTile.areMutable(newTile)) return leftTile;
-        if (rightTile.areMutable(newTile)) return rightTile;
+        if (leftTile.isConnected(newTile)) return leftTile;
+        if (rightTile.isConnected(newTile)) return rightTile;
         throw new RuntimeException("No mutable tile found");
     }
 
     private void setupTileMutation(Tile newTile, Tile muteTile) {
-        int muteVal = muteTile == leftTile ? leftTile.getLeftVal() : rightTile.getRightVal();
+        int muteVal = muteTile == leftTile ? leftTile.getLowVal() : rightTile.getHighVal();
         boolean needSwap = false;
 
-        if (muteTile.getMutedRight()) {
-            needSwap = newTile.getRightVal() != muteVal;
-            muteTile.setMutedLeft();
-            newTile.setMutedRight();
+        if (muteTile.getHighConnected()) {
+            needSwap = newTile.getHighVal() != muteVal;
+            muteTile.setLowConnected();
+            newTile.setHighConnected();
         } else {
-            needSwap = newTile.getLeftVal() != muteVal;
-            newTile.setMutedLeft();
-            muteTile.setMutedRight();
+            needSwap = newTile.getLowVal() != muteVal;
+            newTile.setLowConnected();
+            muteTile.setHighConnected();
         }
 
         double rotateDegree = -90;
-        if (newTile.getLeftVal() == newTile.getRightVal()) {
+        if (newTile.getLowVal() == newTile.getHighVal()) {
             rotateDegree += 90;
             newTile.setVertical(true);
         } else {
@@ -202,7 +204,7 @@ public class DominoGame {
         double chainLength = 0;
 
         for (Tile tile : placedTiles) {
-            if (tile.getLeftVal() == tile.getRightVal()) {
+            if (tile.getLowVal() == tile.getHighVal()) {
                 chainLength += tile.getLength();
             } else {
                 chainLength += tile.getWidth();

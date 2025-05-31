@@ -138,7 +138,7 @@ public class GameTable extends Group {
                 GameResponse updateResponse = getResponse(ResponseType.UPDATE);
                 Tile responseTile = updateResponse.getTile();
 
-                if (responseTile.getLeftVal() + responseTile.getRightVal() <= 12) {
+                if (responseTile.getLowVal() + responseTile.getHighVal() <= 12) {
                     // System.out.println(responseTile);
                     SpriteTile placeTile = new SpriteTile(responseTile);
                     Platform.runLater(() -> {

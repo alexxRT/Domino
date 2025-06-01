@@ -40,12 +40,7 @@ public class GameSession {
         try {
             switch (command.getType()) {
                 case PLACE_MOVE:
-                    GameResponse placeResponse = handlePlaceTile(user, command.getTile(), userTiles);
-                    //if (game.needResize())
-                    //    user.sendString(game.resizeTileChain().toString());
-                    //if (game.needTranslate())
-                    //    user.sendString(game.translateTileChain().toString());
-                    return new GameResponse[]{placeResponse};
+                    return handlePlaceTile(user, command.getTile(), userTiles);
                 case JOIN_SESSION: // get six tiles on the game start
                     user.sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
                     return handleJoinSession(userTiles);
@@ -85,28 +80,30 @@ public class GameSession {
         GameResponse takeResponse = game.getRandomTile(userTiles);
 
         if (takeResponse.getStatus() == Status.OK) {
-            GameResponse tileTaken = new GameResponse(ResponseType.UPDATE);
+            GameResponse tileTaken = new GameResponse(ResponseType.UPDATE_HAND);
             opponent.sendString(tileTaken.toString());
         }
 
         return new GameResponse[]{takeResponse};
     }
 
-    private GameResponse handlePlaceTile(Connection placingUser, Tile tile, List<Tile> userTiles) throws IOException {
+    private GameResponse[] handlePlaceTile(Connection placingUser, Tile tile, List<Tile> userTiles) throws IOException {
         GameResponse placeResponse = game.placeTile(tile.getLeftVal(), tile.getRightVal());
+        GameResponse updatePosResponse = game.updatePos();
 
         if (placeResponse.getStatus() == Status.OK) {
             Connection opponent = getOpponent(placingUser);
-            GameResponse newTilePlaced = new GameResponse(ResponseType.UPDATE);
+            GameResponse newTilePlaced = new GameResponse(ResponseType.UPDATE_MOVE);
             newTilePlaced.setTile(placeResponse.getTile());
 
             opponent.sendString(newTilePlaced.toString()); // send opponent user move to update his/her table
+            opponent.sendString(updatePosResponse.toString()); // send position update translate/resize dominos
             opponent.sendString(new GameResponse(ResponseType.MAKE_MOVE).toString()); // transfer move right to next player
 
             userTiles.remove(tile); // remove tile from user deck on success placement
         }
 
-        return placeResponse;
+        return new GameResponse[]{placeResponse, updatePosResponse};
     }
 
     private Connection getOpponent(Connection user) {

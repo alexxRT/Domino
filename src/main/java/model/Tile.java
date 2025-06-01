@@ -9,7 +9,7 @@ public class Tile {
     private int leftVal = 7;
     private int rightVal = 7;
     private Position position = new Position(0, 0);
-    private Dimension dimension = new Dimension(50, 100); // initial tiles size
+    private Dimension dimension = new Dimension(56, 92); // initial tiles size
     private double rotateDegree = 0;
     private boolean isVertical = false;
     private boolean mutedRight = false;
@@ -37,7 +37,7 @@ public class Tile {
             rightVal = tile.get("rval").asInt();
             position = new Position(tile.get("x").asDouble(), tile.get("y").asDouble());
             rotateDegree = tile.get("rotate").asDouble();
-            dimension = new Dimension(tile.get("dimH").asDouble(), tile.get("dimW").asDouble());
+            dimension = new Dimension(tile.get("dimW").asDouble(), tile.get("dimH").asDouble());
         }
         catch (JsonProcessingException e) {
             System.out.println("Unable to parse tile from json!");

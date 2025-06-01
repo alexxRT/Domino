@@ -24,7 +24,6 @@ public class GameTable extends Group {
     private double hight;
 
     private serverHandler handlerResponse;
-    private updateHandler handlerUpdate;
 
     public GameTable(Connection server, double width, double hight) {
         this.width = width;
@@ -39,32 +38,39 @@ public class GameTable extends Group {
         handlerResponse = new serverHandler(server);
         new Thread(handlerResponse).start();
 
-        // to handle resize or chain translate
-        handlerUpdate = new updateHandler();
-        new Thread(handlerUpdate).start();
-
         startNewGame();
     }
 
-    public void addPlayerDeck(Tile newTile) {
-        playerDeck.addTile(new SpriteTile(newTile, true));
+    public void addPlayerDeck(Tile tile) {
+        playerDeck.addTile(new SpriteTile(tile, true));
+    }
+
+    public void addPlayerDeck(SpriteTile tile) {
+        playerDeck.addTile(tile);
+    }
+
+    public void removePlayerDeck(SpriteTile removeTile) {
+        playerDeck.removeTile(removeTile);
     }
 
     public void addOpponentDeck() {
         opponentDeck.addTile();
     }
 
-    public void removeTileFromDeck(SpriteTile removeTile) {
-        playerDeck.removeTile(removeTile);
+    public void addTile(SpriteTile addTile) {
+        placedTiles.add(addTile);
+        getChildren().add(addTile);
     }
 
-    public void placeTile(SpriteTile placeTile) {
-        placedTiles.add(placeTile);
+    public void removeTile(SpriteTile removeTile) {
+        placedTiles.remove(removeTile);
+        getChildren().remove(removeTile);
     }
 
     public Connection getConnection() {
         return handlerResponse.server;
     }
+
 
     public GameResponse getResponse(ResponseType type) {
         try {
@@ -119,8 +125,11 @@ public class GameTable extends Group {
 
                     if (response.getType() == ResponseType.MAKE_MOVE)
                         DominoGame.dominoOn = true;
-                    else
-                        serverResponses.add(response);
+                    else {
+                        boolean isHandled = handleUpdate(response);
+                        if (!isHandled)
+                            serverResponses.add(response);
+                    }
                 }
             }
             catch (IOException e) {
@@ -130,39 +139,39 @@ public class GameTable extends Group {
         }
     }
 
-    private class updateHandler implements Runnable {
-        @Override
-        public void run() {
+    private boolean handleUpdate(GameResponse update) {
+        // place new tile that was done on remote, syncing update localy
+        if (update.getType() == ResponseType.UPDATE_MOVE) {
+            Tile placeTile = update.getTile();
+            SpriteTile placeTileSprite = new SpriteTile(placeTile);
 
-            while (true) {
-                GameResponse updateResponse = getResponse(ResponseType.UPDATE);
-                Tile responseTile = updateResponse.getTile();
-
-                if (responseTile.getLeftVal() + responseTile.getRightVal() <= 12) {
-                    SpriteTile placeTile = new SpriteTile(responseTile);
-                    Platform.runLater(() -> {
-                        opponentDeck.removeTile();
-                        getChildren().add(placeTile);
-                        placeTile.translateDesire(opponentDeck.getLayoutX() + opponentDeck.getWidth() / 2,
-                        opponentDeck.getLayoutY() + opponentDeck.getHeight() / 2,
-                        responseTile.getX(), responseTile.getY(), responseTile.getRotateDegree());
-                    });
-                }
-                else { // if tile value 7 | 7, opponent took tile -> update on client
-                    Platform.runLater(() -> {
-                        opponentDeck.addTile();
-                    });
-                }
-                // RESIZE AND TRANSLATE WORKS INCORRECT
-                // TODO: DEBUG THIS; STATUS: POSTPONED
-                // apply geometrical update on placed tiles if needed
-                //if (updateResponse.getUpdate().getResize() != 0
-                //|| updateResponse.getUpdate().getDeltaX() != 0) {
-                //    for (SpriteTile placedTile : placedTiles)
-                //        placedTile.applyUpdate(updateResponse.getUpdate());
-                //}
-            }
+            Platform.runLater(() -> {
+                opponentDeck.removeTile();
+                addTile(placeTileSprite);
+                placeTileSprite.translateDesire(opponentDeck.getLayoutX() + opponentDeck.getWidth() / 2,
+                opponentDeck.getLayoutY() + opponentDeck.getHeight() / 2,
+                placeTile.getX(), placeTile.getY(), placeTile.getRotateDegree());
+            });
+            return true;
         }
+
+        // update if oppenent took tile from bazar
+        if (update.getType() == ResponseType.UPDATE_HAND) {
+            Platform.runLater(() -> {
+                opponentDeck.addTile();
+            });
+            return true;
+        }
+
+        // update placed tiles position and sizes to fit table
+        if (update.getType() == ResponseType.UPDATE_POS) {
+            System.out.println("Handling domino tile resize");
+            for (SpriteTile tile : placedTiles) {
+                tile.applyUpdate(update.getUpdate());
+            }
+            return true;
+        }
+        return false;
     }
 
     // this function requests on server new tiles on game init
@@ -171,12 +180,7 @@ public class GameTable extends Group {
         try {
             GameResponse askJoin = new GameResponse(ResponseType.JOIN_SESSION);
             getConnection().sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
-
-            System.out.println("Sending on backend: " + askJoin.toString());
-
             GameResponse response = getResponse(ResponseType.JOIN_SESSION);
-
-            System.out.println("recieved from server: " + response.toString());
 
             // joined session!
             if (response.getStatus() == Status.OK) {

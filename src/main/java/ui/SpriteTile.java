@@ -86,14 +86,14 @@ public class SpriteTile extends ImageView {
             Connection dominoServer = table.getConnection();
 
             GameResponse placeRequest = new GameResponse(ResponseType.PLACE_MOVE);
-            placeRequest.setTile(tile);
+            placeRequest.setTile(toPlace.getTile());
 
             try {
                 // checks if currently my move to do
                 // if not, return back in deck
                 if (!DominoGame.dominoOn) {
-                    table.getChildren().remove(toPlace);
-                    table.addPlayerDeck(tile);
+                    table.removeTile(toPlace);
+                    table.addPlayerDeck(toPlace);
                     return;
                 }
 
@@ -102,13 +102,9 @@ public class SpriteTile extends ImageView {
                 GameResponse placeResponse = table.getResponse(ResponseType.PLACE_MOVE);
 
                 if (placeResponse.getStatus() == Status.OK) {
-                    table.placeTile(toPlace);
                     Tile responseTile = placeResponse.getTile();
                     toPlace.translateDesire(event.getSceneX(), event.getSceneY(), responseTile.getX(),
                     responseTile.getY(), responseTile.getRotateDegree());
-
-                    // actions on success server request
-                    table.removeTileFromDeck(toPlace);
 
                     // turn off animation effects
                     dragTile.disable(toPlace);
@@ -118,14 +114,14 @@ public class SpriteTile extends ImageView {
                     DominoGame.dominoOn = false; // end current move
                 }
                 else { // return tile back in deck
-                    table.getChildren().remove(toPlace);
-                    table.addPlayerDeck(tile);
+                    table.removeTile(toPlace);
+                    table.addPlayerDeck(toPlace);
                 }
             }
             catch (IOException ioExp) {
                 System.out.println("Bad server response when placing new tile");
-                table.getChildren().remove(toPlace);
-                table.addPlayerDeck(tile); // even if server is unreachable -> keep UI consistent
+                table.removeTile(toPlace);
+                table.addPlayerDeck(toPlace); // even if server is unreachable -> keep UI consistent
             }
         }
     }
@@ -145,11 +141,14 @@ public class SpriteTile extends ImageView {
     public void setID(int newID) { tileID = newID; }
 
     public void applyUpdate(Update upd) {
+       System.out.println("Width: " + tile.getWidth());
+       System.out.println("Lehgth: " + tile.getLength());
+
        setFitWidth(tile.getWidth() * upd.getResize());
        setFitHeight(tile.getLength() * upd.getResize());
 
-       setTranslateX(upd.getDeltaX());
-       setTranslateY(upd.getDeltaY());
+    //    setTranslateX(upd.getDeltaX());
+    //    setTranslateY(upd.getDeltaY());
     }
     // the problem is that tiles comparison happens implicitely and result is not controlled
     // need to properly override equals method

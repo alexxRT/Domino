@@ -154,37 +154,16 @@ public class DominoGame {
         return response;
     }
 
-    public boolean needResize() {
+    public GameResponse updatePos() {
+        GameResponse response = new GameResponse(ResponseType.UPDATE_POS);
+
         double resizeCoeff = calculateResizeCoefficient();
-        if (resizeCoeff == 0)
-            return false;
-        return true;
-    }
-
-    public GameResponse resizeTileChain() {
-        GameResponse response = new GameResponse(ResponseType.UPDATE);
-        double resizeCoeff = calculateResizeCoefficient();
-        placedTiles.forEach(tile -> {
-            tile.setLength(resizeCoeff * tile.getLength());
-            tile.setWidth(resizeCoeff * tile.getWidth());
-        });
-        response.setUpdate(resizeCoeff, 0, 0);
-        return response;
-    }
-
-    public boolean needTranslate() {
         double deltaX = calculateTranslation();
-        if (deltaX == 0)
-            return false;
-        return true;
-    }
 
-    public GameResponse translateTileChain() {
-        GameResponse response = new GameResponse(ResponseType.UPDATE);
-        double deltaX = calculateTranslation();
         applyTranslation(deltaX);
-        // Add all updated tiles to response
-        response.setUpdate(1, deltaX, 0);
+        applyResize(resizeCoeff);
+
+        response.setUpdate(resizeCoeff, deltaX, 0);
         return response;
     }
 
@@ -194,9 +173,8 @@ public class DominoGame {
 
     // Private helper methods
     private double calculateResizeCoefficient() {
-        if (placedTiles.isEmpty()) {
-            return 0;
-        }
+        if (placedTiles.isEmpty())
+            return 1;
 
         double minDivergency = 2 * placedTiles.get(0).getLength();
         double chainLength = 0;
@@ -235,5 +213,12 @@ public class DominoGame {
 
     private void applyTranslation(double deltaX) {
         placedTiles.forEach(tile -> tile.setX(tile.getX() + deltaX));
+    }
+
+    private void applyResize(double resizeCoeff) {
+        placedTiles.forEach(tile -> {
+            tile.setLength(resizeCoeff * tile.getLength());
+            tile.setWidth(resizeCoeff * tile.getWidth());
+        });
     }
 }

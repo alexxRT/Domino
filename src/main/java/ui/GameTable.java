@@ -42,7 +42,7 @@ public class GameTable extends Group {
     }
 
     public void addPlayerDeck(Tile tile) {
-        playerDeck.addTile(new SpriteTile(tile, true));
+        playerDeck.addTile(tile);
     }
 
     public void addPlayerDeck(SpriteTile tile) {

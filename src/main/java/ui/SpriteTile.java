@@ -103,7 +103,7 @@ public class SpriteTile extends ImageView {
 
                 if (placeResponse.getStatus() == Status.OK) {
                     Tile responseTile = placeResponse.getTile();
-                    toPlace.translateDesire(event.getSceneX(), event.getSceneY(), responseTile.getX(),
+                    toPlace.translateDesire(getLayoutX(), getLayoutY(), responseTile.getX(),
                     responseTile.getY(), responseTile.getRotateDegree());
 
                     // turn off animation effects

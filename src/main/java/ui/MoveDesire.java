@@ -2,17 +2,12 @@ package ui;
 
 import javafx.util.Duration;
 
-import javafx.animation.ParallelTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.geometry.Point3D;
 import javafx.scene.image.ImageView;
+import javafx.scene.transform.Rotate;
 
 public class MoveDesire {
-    private TranslateTransition placeMove  = new TranslateTransition();
-    private RotateTransition rotateMove    = new RotateTransition();
-    private ParallelTransition placeDesire = new ParallelTransition();
-
     double maxDistance   = 100;
     Duration maxDuration = Duration.millis(500);
 
@@ -35,20 +30,23 @@ public class MoveDesire {
     }
 
     public void apply(ImageView toMove) {
-        placeMove.setNode(toMove);
-        placeMove.setByX(targetX - fromX);
-        placeMove.setByY(targetY - fromY);
+        Rotate rotate = new Rotate(0, 0, 0);
+        toMove.getTransforms().add(rotate);
 
-        rotateMove.setNode(toMove);
-        rotateMove.setAxis(new Point3D(0, 0,1));
-        rotateMove.setByAngle(rotateDegree);
-
-        Duration playTime = getDuration();
-        rotateMove.setDuration(playTime);
-        placeMove.setDuration(playTime);
-
-        placeDesire.getChildren().addAll(rotateMove, placeMove);
-        placeDesire.play();
+        // Animate the rotation
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.ZERO,
+                new KeyValue(rotate.angleProperty(), 0),
+                new KeyValue(toMove.layoutXProperty(), fromX),
+                new KeyValue(toMove.layoutYProperty(), fromY)
+            ),
+            new KeyFrame(getDuration(),
+                new KeyValue(rotate.angleProperty(), rotateDegree),
+                new KeyValue(toMove.layoutXProperty(), targetX),
+                new KeyValue(toMove.layoutYProperty(), targetY)
+            )
+        );
+        timeline.play();
     }
 
     private Duration getDuration() {

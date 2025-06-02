@@ -88,7 +88,7 @@ public class GameSession {
     }
 
     private GameResponse[] handlePlaceTile(Connection placingUser, Tile tile, List<Tile> userTiles) throws IOException {
-        GameResponse placeResponse = game.placeTile(tile.getLeftVal(), tile.getRightVal());
+        GameResponse placeResponse = game.placeTile(tile);
         GameResponse updatePosResponse = game.updatePos();
 
         if (placeResponse.getStatus() == Status.OK) {

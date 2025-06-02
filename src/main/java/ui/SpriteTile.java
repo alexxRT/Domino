@@ -30,10 +30,10 @@ public class SpriteTile extends ImageView {
         //String imagePath = "sprite/" + left + "_" + right + ".png";
         try {
             String imagePath;
-            if (this.tile.getLeftVal() < 0 || this.tile.getRightVal() < 0)
+            if (this.tile.getLowVal() < 0 || this.tile.getHighVal() < 0)
                 imagePath = getClass().getResource("/dominoDown.png").toExternalForm();
             else {
-                var path = String.format("/dominoTile/%d-%d.png", tile.getLeftVal(), tile.getRightVal());
+                var path = String.format("/dominoTile/%d-%d.png", tile.getLowVal(), tile.getHighVal());
                 imagePath = getClass().getResource(path).toExternalForm();
             }
             setImage(new Image(imagePath));
@@ -55,10 +55,10 @@ public class SpriteTile extends ImageView {
         //String imagePath = "sprite/" + left + "_" + right + ".png";
         try {
             String imagePath;
-            if (this.tile.getLeftVal() + this.tile.getRightVal() > 12)
+            if (this.tile.getLowVal() + this.tile.getHighVal() > 12)
                 imagePath = getClass().getResource("/dominoDown.png").toExternalForm();
             else {
-                var path = String.format("/dominoTile/%d-%d.png", tile.getLeftVal(), tile.getRightVal());
+                var path = String.format("/dominoTile/%d-%d.png", tile.getLowVal(), tile.getHighVal());
                 imagePath = getClass().getResource(path).toExternalForm();
             }
             setImage(new Image(imagePath));

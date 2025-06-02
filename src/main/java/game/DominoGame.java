@@ -23,9 +23,7 @@ public class DominoGame {
                bazarTiles.add(new Tile(i, j));
     }
 
-    public GameResponse placeTile(int left, int right) {
-        Tile newTile = new Tile(left, right);
-
+    public GameResponse placeTile(Tile newTile) {
         if (!isMoveValid(newTile)) {
             return new GameResponse(ResponseType.PLACE_MOVE, Status.AGAIN);
         }
@@ -84,7 +82,7 @@ public class DominoGame {
 
     private boolean isMoveValid(Tile tile) {
         if (placedTiles.isEmpty()) return true;
-        return leftTile.areMutable(tile) || rightTile.areMutable(tile);
+        return leftTile.isConnectable(tile) || rightTile.isConnectable(tile);
     }
 
     private Tile placeTileOnBoard(Tile newTile) {
@@ -93,19 +91,20 @@ public class DominoGame {
             return newTile;
         }
 
-        Tile muteTile = findMutableTile(newTile);
-        setupTileMutation(newTile, muteTile);
-        setupTilePosition(newTile, muteTile);
+        // choose to which connect - right or left
+        Tile tableTile = chooseConnectableTile(newTile);
+        setupTileConnection(tableTile, newTile);
+        setupTilePosition(tableTile, newTile);
         placedTiles.add(newTile);
 
-        return muteTile;
+        return tableTile;
     }
 
     // this works fine - no adjustemnts //
     private void setupFirstTile(Tile tile) {
         leftTile = tile;
         rightTile = tile;
-        boolean isDouble = tile.getRightVal() == tile.getLeftVal();
+        boolean isDouble = tile.getHighVal() == tile.getLowVal();
         tile.setRotate(isDouble ? 0 : -90);
         tile.setVertical(isDouble);
         // centric tile more precisely
@@ -119,34 +118,26 @@ public class DominoGame {
         placedTiles.add(tile);
     }
 
-    private Tile findMutableTile(Tile newTile) {
-        if (leftTile.areMutable(newTile)) return leftTile;
-        if (rightTile.areMutable(newTile)) return rightTile;
+    private Tile chooseConnectableTile(Tile newTile) {
+        if (leftTile.isConnectable(newTile)) return leftTile;
+        if (rightTile.isConnectable(newTile)) return rightTile;
         throw new RuntimeException("No mutable tile found");
     }
 
-    private void setupTileMutation(Tile newTile, Tile muteTile) {
-        int muteVal = muteTile == leftTile ? leftTile.getLeftVal() : rightTile.getRightVal();
-        boolean needSwap = false;
+    private Tile setupTileConnection(Tile tableTile, Tile newTile) {
+        int connectVal = tableTile == leftTile ? leftTile.getLowVal() :
+                                                 rightTile.getHighVal();
 
-        if (muteTile.getMutedRight()) {
-            needSwap = newTile.getRightVal() != muteVal;
-            muteTile.setMutedLeft();
-            newTile.setMutedRight();
-        } else {
-            needSwap = newTile.getLeftVal() != muteVal;
-            newTile.setMutedLeft();
-            muteTile.setMutedRight();
-        }
+        newTile.setVertical(newTile.getHighVal() == newTile.getLowVal());
 
-        double rotateDegree = -90;
-        if (newTile.getLeftVal() == newTile.getRightVal()) {
-            rotateDegree += 90;
-            newTile.setVertical(true);
-        } else {
-            rotateDegree += needSwap ? 180 : 0;
-        }
+        double rotateDegree = 0;
+        if (!newTile.isVertical())
+            rotateDegree = tableTile == leftTile ? -90 : 90;
+
         newTile.setRotate(rotateDegree);
+        newTile.setSwap(connectVal == newTile.getLowVal());
+
+        return newTile;
     }
 
     private double[] placeHoriontalX (Tile tableTile, Tile placeTile) {
@@ -177,12 +168,12 @@ public class DominoGame {
     }
 
     private double[] getTileDeltaX(Tile tableTile, Tile newTile) {
-        if (newTile.isVertical() && tableTile.isVertical())
-            throw new RuntimeException("Placing two tiles vertical to each other!");
-
         // in case when first tile placed -> no delta needed
         if (tableTile == newTile)
             return new double[] {0, 0};
+
+        if (newTile.isVertical() && tableTile.isVertical())
+            throw new RuntimeException("Placing two tiles vertical to each other!");
 
         if (!(newTile.isVertical() || tableTile.isVertical()))
             return placeHoriontalX(tableTile, newTile);
@@ -191,12 +182,12 @@ public class DominoGame {
     }
 
     private double[] getTileDeltaY(Tile tableTile, Tile newTile) {
-        if (newTile.isVertical() && tableTile.isVertical())
-            throw new RuntimeException("Placing two tiles vertical to each other!");
-
         // in case when first tile placed -> no delta needed
         if (tableTile == newTile)
             return new double[] {0, 0};
+
+        if (newTile.isVertical() && tableTile.isVertical())
+            throw new RuntimeException("Placing two tiles vertical to each other!");
 
         if (!(newTile.isVertical() || tableTile.isVertical()))
             return placeHoriontalY(tableTile, newTile);
@@ -205,7 +196,7 @@ public class DominoGame {
     }
 
     // keep top left corner consistency
-    private void setupTilePosition(Tile newTile, Tile tableTile) {
+    private void setupTilePosition(Tile tableTile, Tile newTile) {
         double[] deltaX;
         double[] deltaY;
 
@@ -231,11 +222,12 @@ public class DominoGame {
 
     private GameResponse createPlaceMoveResponse(Tile tableTile, Tile placedTile, double deltaX, double deltaY) {
         GameResponse response = new GameResponse(ResponseType.PLACE_MOVE);
-        Tile responseTile = new Tile(placedTile.getLeftVal(), placedTile.getRightVal());
+        Tile responseTile = new Tile(placedTile.getLowVal(), placedTile.getHighVal());
 
         responseTile.setX(tableTile.getX() + deltaX);
         responseTile.setY(tableTile.getY() + deltaY);
         responseTile.setRotate(placedTile.getRotateDegree());
+        responseTile.setSwap(placedTile.getSwap());
 
         response.setTile(responseTile);
         return response;
@@ -267,10 +259,10 @@ public class DominoGame {
         double chainLength = 0;
 
         for (Tile tile : placedTiles) {
-            if (tile.getLeftVal() == tile.getRightVal()) {
-                chainLength += tile.getLength();
-            } else {
+            if (tile.getLowVal() == tile.getHighVal()) {
                 chainLength += tile.getWidth();
+            } else {
+                chainLength += tile.getLength();
             }
         }
 

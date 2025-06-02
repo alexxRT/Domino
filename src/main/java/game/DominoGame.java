@@ -30,8 +30,15 @@ public class DominoGame {
             return new GameResponse(ResponseType.PLACE_MOVE, Status.AGAIN);
         }
 
-        placeTileOnBoard(newTile);
-        return createPlaceMoveResponse(newTile);
+        // here tile has updated and correct coordinates of top left corner
+        Tile tableTile = placeTileOnBoard(newTile);
+
+        // this delta with respective to table tile left top corner coordinate
+        int placeRight = rightTile == newTile ? 0 : 1;
+        double deltaX = getTileDeltaX(tableTile, newTile)[placeRight];
+        double deltaY = getTileDeltaY(tableTile, newTile)[placeRight];
+
+        return createPlaceMoveResponse(tableTile, newTile, deltaX, deltaY);
     }
 
     public GameResponse getRandomTile(List<Tile> userTiles) {
@@ -80,25 +87,35 @@ public class DominoGame {
         return leftTile.areMutable(tile) || rightTile.areMutable(tile);
     }
 
-    private void placeTileOnBoard(Tile newTile) {
+    private Tile placeTileOnBoard(Tile newTile) {
         if (placedTiles.isEmpty()) {
             setupFirstTile(newTile);
-            return;
+            return newTile;
         }
 
         Tile muteTile = findMutableTile(newTile);
         setupTileMutation(newTile, muteTile);
         setupTilePosition(newTile, muteTile);
         placedTiles.add(newTile);
+
+        return muteTile;
     }
 
+    // this works fine - no adjustemnts //
     private void setupFirstTile(Tile tile) {
         leftTile = tile;
         rightTile = tile;
         boolean isDouble = tile.getRightVal() == tile.getLeftVal();
         tile.setRotate(isDouble ? 0 : -90);
-        tile.setX(board.getPosition().getX() + board.getWidth() / 2);
-        tile.setY(board.getPosition().getY() + board.getHeight() / 2);
+        tile.setVertical(isDouble);
+        // centric tile more precisely
+        if (isDouble) {
+            tile.setX(board.getWidth() / 2 - tile.getWidth() / 2);
+            tile.setY(board.getHeight() / 2 - tile.getLength() / 2);
+        } else {
+            tile.setX(board.getWidth() / 2 - tile.getLength() / 2);
+            tile.setY(board.getHeight() / 2 - tile.getWidth() / 2);
+        }
         placedTiles.add(tile);
     }
 
@@ -132,25 +149,95 @@ public class DominoGame {
         newTile.setRotate(rotateDegree);
     }
 
-    private void setupTilePosition(Tile newTile, Tile muteTile) {
-        newTile.setY(muteTile.getY());
-        double deltaX = newTile.getRotateDegree() == 0 ?
-            newTile.getWidth() : newTile.getLength();
-        deltaX += muteTile.isVertical() ?
-            muteTile.getWidth() / 2 : muteTile.getLength() / 2;
-
-        if (muteTile == rightTile) {
-            newTile.setX(muteTile.getX() + deltaX);
-            rightTile = newTile;
-        } else {
-            newTile.setX(muteTile.getX() - deltaX);
-            leftTile = newTile;
-        }
+    private double[] placeHoriontalX (Tile tableTile, Tile placeTile) {
+                            // place right    // place left
+        return new double[]{tableTile.getLength(), 0};
     }
 
-    private GameResponse createPlaceMoveResponse(Tile tile) {
+    private double[] placeHoriontalY (Tile tableTile, Tile placeTile) {
+                            // place right  // place left
+        return new double[]{tableTile.getWidth(), 0};
+    }
+
+    private double[] placeVerticalX(Tile tableTile, Tile placeTile) {
+        if (tableTile.isVertical())
+            return new double[]{tableTile.getWidth(), 0};
+
+        return new double[]{tableTile.getLength(),
+                            -placeTile.getWidth()};
+    }
+
+    private double[] placeVerticalY(Tile tableTile, Tile placeTile) {
+        if (tableTile.isVertical())
+            return new double[]{tableTile.getLength() / 2 + placeTile.getWidth() / 2,
+                                -placeTile.getWidth() / 2};
+
+        return new double[]{tableTile.getWidth() / 2 - placeTile.getLength() / 2,
+                            tableTile.getWidth() / 2 - placeTile.getLength() / 2};
+    }
+
+    private double[] getTileDeltaX(Tile tableTile, Tile newTile) {
+        if (newTile.isVertical() && tableTile.isVertical())
+            throw new RuntimeException("Placing two tiles vertical to each other!");
+
+        // in case when first tile placed -> no delta needed
+        if (tableTile == newTile)
+            return new double[] {0, 0};
+
+        if (!(newTile.isVertical() || tableTile.isVertical()))
+            return placeHoriontalX(tableTile, newTile);
+
+        return placeVerticalX(tableTile, newTile);
+    }
+
+    private double[] getTileDeltaY(Tile tableTile, Tile newTile) {
+        if (newTile.isVertical() && tableTile.isVertical())
+            throw new RuntimeException("Placing two tiles vertical to each other!");
+
+        // in case when first tile placed -> no delta needed
+        if (tableTile == newTile)
+            return new double[] {0, 0};
+
+        if (!(newTile.isVertical() || tableTile.isVertical()))
+            return placeHoriontalY(tableTile, newTile);
+
+        return placeVerticalY(tableTile, newTile);
+    }
+
+    // keep top left corner consistency
+    private void setupTilePosition(Tile newTile, Tile tableTile) {
+        double[] deltaX;
+        double[] deltaY;
+
+         if (!(newTile.isVertical() || tableTile.isVertical())) {
+            deltaX = new double[]{tableTile.getWidth(), -tableTile.getLength()};
+            deltaY = new double[]{0, 0};
+         } else {
+            deltaX = tableTile.isVertical() ?
+            new double[]{tableTile.getWidth(), -newTile.getLength()} :
+            new double[]{tableTile.getLength(), -newTile.getWidth()};
+
+            deltaY = new double[]{tableTile.getLength() / 2 - newTile.getWidth() / 2,
+                                  tableTile.getLength() / 2 - newTile.getWidth() / 2};
+         }
+
+        // set new domino on table logic
+        newTile.setX(tableTile.getX() + deltaX[newTile == rightTile ? 0 : 1]);
+        newTile.setY(tableTile.getY() + deltaY[newTile == rightTile ? 0 : 1]);
+
+        rightTile = tableTile == rightTile ? newTile : rightTile;
+        leftTile = tableTile == leftTile ? newTile : leftTile;
+    }
+
+    private GameResponse createPlaceMoveResponse(Tile tableTile, Tile placedTile, double deltaX, double deltaY) {
         GameResponse response = new GameResponse(ResponseType.PLACE_MOVE);
-        response.setTile(tile);
+        Tile responseTile = new Tile(placedTile.getLeftVal(), placedTile.getRightVal());
+
+        responseTile.setX(tableTile.getX() + deltaX);
+        responseTile.setY(tableTile.getY() + deltaY);
+        responseTile.setRotate(placedTile.getRotateDegree());
+
+        response.setTile(responseTile);
         return response;
     }
 

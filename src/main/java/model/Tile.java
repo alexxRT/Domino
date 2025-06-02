@@ -6,22 +6,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class Tile {
-    private int leftVal = 7;
-    private int rightVal = 7;
+    private int lowVal = 7;
+    private int highVal = 7;
     private Position position = new Position(0, 0);
     private Dimension dimension = new Dimension(56, 92); // initial tiles size
     private double rotateDegree = 0;
+    private boolean swap = false;
     private boolean isVertical = false;
-    private boolean mutedRight = false;
-    private boolean mutedLeft = false;
 
-    static private String[] jsonNodes = {"rval", "lval", "x", "y", "rotate", "dimH", "dimW"};
+    static private String[] jsonNodes = {"hval", "lval", "x", "y", "rotate", "dimH", "dimW", "swap"};
 
     public Tile() {}
 
-    public Tile(int left, int right) {
-        this.leftVal = left;
-        this.rightVal = right;
+    public Tile(int low, int high) {
+        this.lowVal = low;
+        this.highVal = high;
     }
 
     public Tile(String bytes) {
@@ -33,8 +32,9 @@ public class Tile {
                 return;
             }
 
-            leftVal = tile.get("lval").asInt();
-            rightVal = tile.get("rval").asInt();
+            lowVal = tile.get("lval").asInt();
+            highVal = tile.get("hval").asInt();
+            swap = tile.get("swap").asBoolean();
             position = new Position(tile.get("x").asDouble(), tile.get("y").asDouble());
             rotateDegree = tile.get("rotate").asDouble();
             dimension = new Dimension(tile.get("dimW").asDouble(), tile.get("dimH").asDouble());
@@ -46,46 +46,43 @@ public class Tile {
         }
     }
 
-    public boolean areMutable(Tile nextTile) {
-        if ((rightVal == nextTile.getLeftVal() || rightVal == nextTile.getRightVal())
-            && !mutedRight)
+    public boolean isConnectable(Tile nextTile) {
+        if (highVal == nextTile.getLowVal() || highVal == nextTile.getHighVal())
             return true;
 
-        if ((leftVal == nextTile.getLeftVal() || leftVal == nextTile.getRightVal())
-            && !mutedLeft)
+        if (lowVal == nextTile.getLowVal() || lowVal == nextTile.getHighVal())
             return true;
 
         return false;
     }
 
     // Getters
-    public int getLeftVal() { return leftVal; }
-    public int getRightVal() { return rightVal; }
+    public int getLowVal() { return lowVal; }
+    public int getHighVal() { return highVal; }
     public double getX() { return position.getX(); }
     public double getY() { return position.getY(); }
     public double getWidth() { return dimension.getWidth(); }
     public double getLength() { return dimension.getLength(); }
     public double getSize() { return dimension.getWidth() * dimension.getLength(); }
-    public boolean getMutedRight() { return mutedRight; }
-    public boolean getMutedLeft() { return mutedLeft; }
     public boolean isVertical() { return isVertical; }
+    public boolean getSwap() { return swap; }
     public double getRotateDegree() { return rotateDegree; }
 
     // Setters
     public void setX(double x) { position.setX(x); }
     public void setY(double y) { position.setY(y); }
     public void setRotate(double degree) { this.rotateDegree = degree; }
-    public void setMutedRight() { this.mutedRight = true; }
-    public void setMutedLeft() { this.mutedLeft = true; }
     public void setWidth(double width) { dimension.setWidth(width); }
     public void setLength(double length) { dimension.setLength(length); }
+    public void setSwap(boolean swap) { this.swap = swap; }
     public void setVertical(boolean vertical) { this.isVertical = vertical; }
 
     @Override
     public String toString() {
         ObjectNode obj = JsonNodeFactory.instance.objectNode()
-                        .put("rval", rightVal)
-                        .put("lval", leftVal)
+                        .put("hval", highVal)
+                        .put("lval", lowVal)
+                        .put("swap", swap)
                         .put("x", position.getX())
                         .put("y", position.getY())
                         .put("rotate", rotateDegree)
@@ -96,8 +93,9 @@ public class Tile {
 
     public JsonNode toJsonNode() {
         ObjectNode obj = JsonNodeFactory.instance.objectNode()
-                            .put("rval", rightVal)
-                            .put("lval", leftVal)
+                            .put("hval", highVal)
+                            .put("lval", lowVal)
+                            .put("swap", swap)
                             .put("x", position.getX())
                             .put("y", position.getY())
                             .put("rotate", rotateDegree)
@@ -127,8 +125,8 @@ public class Tile {
 
         Tile toCompare = (Tile)obj;
 
-        if ((toCompare.getLeftVal() == leftVal && toCompare.getRightVal() == rightVal) ||
-            (toCompare.getLeftVal() == rightVal && toCompare.getRightVal() == leftVal))
+        if ((toCompare.getLowVal() == lowVal && toCompare.getHighVal() == highVal) ||
+            (toCompare.getLowVal() == highVal && toCompare.getHighVal() == lowVal))
                 return true;
         return false;
     }

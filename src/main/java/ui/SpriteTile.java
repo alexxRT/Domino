@@ -26,11 +26,9 @@ public class SpriteTile extends ImageView {
     public SpriteTile(Tile tile, boolean applyAnnimation) {
         this.tile = tile;
         annimated = applyAnnimation;
-
-        //String imagePath = "sprite/" + left + "_" + right + ".png";
         try {
             String imagePath;
-            if (this.tile.getLowVal() < 0 || this.tile.getHighVal() < 0)
+            if (this.tile.getLowVal() + this.tile.getHighVal() > 12)
                 imagePath = getClass().getResource("/dominoDown.png").toExternalForm();
             else {
                 var path = String.format("/dominoTile/%d-%d.png", tile.getLowVal(), tile.getHighVal());
@@ -52,7 +50,6 @@ public class SpriteTile extends ImageView {
 
     public SpriteTile(Tile tile) {
         this.tile = tile;
-        //String imagePath = "sprite/" + left + "_" + right + ".png";
         try {
             String imagePath;
             if (this.tile.getLowVal() + this.tile.getHighVal() > 12)

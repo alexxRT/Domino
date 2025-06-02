@@ -19,7 +19,7 @@ public class DominoGame {
 
         // here we need init all available dominos
         for (int i = 0; i <= 6; i ++)
-            for (int j = i; j <= 6; j ++)
+            for (int j = 0; j <= i; j ++)
                bazarTiles.add(new Tile(i, j));
     }
 
@@ -32,7 +32,7 @@ public class DominoGame {
         Tile tableTile = placeTileOnBoard(newTile);
 
         // this delta with respective to table tile left top corner coordinate
-        int placeRight = rightTile == newTile ? 0 : 1;
+        int placeRight = rightTile == newTile ? 1 : 0;
         double deltaX = getTileDeltaX(tableTile, newTile)[placeRight];
         double deltaY = getTileDeltaY(tableTile, newTile)[placeRight];
 
@@ -81,7 +81,8 @@ public class DominoGame {
     }
 
     private boolean isMoveValid(Tile tile) {
-        if (placedTiles.isEmpty()) return true;
+        if (placedTiles.isEmpty())
+            return tile.getHighVal() == tile.getLowVal(); // start game only with n | n tile
         return leftTile.isConnectable(tile) || rightTile.isConnectable(tile);
     }
 
@@ -104,17 +105,16 @@ public class DominoGame {
     private void setupFirstTile(Tile tile) {
         leftTile = tile;
         rightTile = tile;
-        boolean isDouble = tile.getHighVal() == tile.getLowVal();
-        tile.setRotate(isDouble ? 0 : -90);
-        tile.setVertical(isDouble);
+
+        if (!(tile.getHighVal() == tile.getLowVal()))
+            throw new RuntimeException("First tile can be (n | n) double only!");
+
+        tile.setVertical(true);
+
         // centric tile more precisely
-        if (isDouble) {
-            tile.setX(board.getWidth() / 2 - tile.getWidth() / 2);
-            tile.setY(board.getHeight() / 2 - tile.getLength() / 2);
-        } else {
-            tile.setX(board.getWidth() / 2 - tile.getLength() / 2);
-            tile.setY(board.getHeight() / 2 - tile.getWidth() / 2);
-        }
+        tile.setX(board.getWidth() / 2 - tile.getWidth() / 2);
+        tile.setY(board.getHeight() / 2 - tile.getLength() / 2);
+
         placedTiles.add(tile);
     }
 
@@ -132,7 +132,7 @@ public class DominoGame {
 
         double rotateDegree = 0;
         if (!newTile.isVertical())
-            rotateDegree = tableTile == leftTile ? -90 : 90;
+            rotateDegree = tableTile == rightTile ? 90 : -90;
 
         newTile.setRotate(rotateDegree);
         newTile.setSwap(connectVal == newTile.getLowVal());
@@ -159,10 +159,12 @@ public class DominoGame {
     }
 
     private double[] placeVerticalY(Tile tableTile, Tile placeTile) {
-        if (tableTile.isVertical())
+        if (tableTile.isVertical()) {
+            System.out.println("Place VerticatY table: Vertical");
             return new double[]{tableTile.getLength() / 2 + placeTile.getWidth() / 2,
-                                -placeTile.getWidth() / 2};
-
+                                placeTile.getLength() / 2 - tableTile.getWidth() / 2};
+        }
+        System.out.println("Place VerticatY table: Horizontal");
         return new double[]{tableTile.getWidth() / 2 - placeTile.getLength() / 2,
                             tableTile.getWidth() / 2 - placeTile.getLength() / 2};
     }

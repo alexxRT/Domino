@@ -35,6 +35,8 @@ public class SpriteTile extends ImageView {
                 imagePath = getClass().getResource(path).toExternalForm();
             }
             setImage(new Image(imagePath));
+            setFitHeight(tile.getLength());
+            setFitWidth(tile.getWidth());
         } catch (Exception e) {
             System.out.println("Bad image init for tile!");
             e.printStackTrace();
@@ -43,7 +45,6 @@ public class SpriteTile extends ImageView {
         if (annimated) {
             slideTile.apply(this);
             dragTile.apply(this);
-
             setOnMouseReleased(placeMove);
         }
     }
@@ -59,6 +60,8 @@ public class SpriteTile extends ImageView {
                 imagePath = getClass().getResource(path).toExternalForm();
             }
             setImage(new Image(imagePath));
+            setFitHeight(tile.getLength());
+            setFitWidth(tile.getWidth());
         } catch (Exception e) {
             System.out.println("Bad image init for tile!");
             e.printStackTrace();
@@ -100,8 +103,7 @@ public class SpriteTile extends ImageView {
 
                 if (placeResponse.getStatus() == Status.OK) {
                     Tile responseTile = placeResponse.getTile();
-                    toPlace.translateDesire(getLayoutX(), getLayoutY(), responseTile.getX(),
-                    responseTile.getY(), responseTile.getRotateDegree());
+                    toPlace.translateDesire(getLayoutX(), getLayoutY(), responseTile);
 
                     // turn off animation effects
                     dragTile.disable(toPlace);
@@ -123,10 +125,31 @@ public class SpriteTile extends ImageView {
         }
     }
 
-    public void translateDesire(double originX, double originY, double targetX, double targetY, double rotateDegree) {
+    public void translateDesire(double originX, double originY, Tile targetTile) {
+        // optimization on no translate set
+        if (areDoublesEqual(originX, targetTile.getX(), 1e-9) &&
+            areDoublesEqual(originY, targetTile.getY(), 1e-9) &&
+            areDoublesEqual(targetTile.getRotateDegree(), 0.0, 1e-9) &&
+            !targetTile.getSwap())
+            return;
+
         setLayoutX(originX);
         setLayoutY(originY);
-        moveTile.setDesire(originX, originY, targetX, targetY, rotateDegree);
+        moveTile.setDesire(originX, originY, targetTile.getX(), targetTile.getY(),
+                                    targetTile.getRotateDegree(), targetTile.getSwap());
+        moveTile.apply(this);
+    }
+
+    public void translateDesire(double originX, double originY, double targetX, double targetY) {
+        // optimization on no translate set
+        if (areDoublesEqual(originX, targetX, 1e-9) &&
+            areDoublesEqual(originY, targetY, 1e-9))
+            return;
+
+        setLayoutX(originX);
+        setLayoutY(originY);
+
+        moveTile.setDesire(originX, originY, targetX, targetY);
         moveTile.apply(this);
     }
 
@@ -141,11 +164,11 @@ public class SpriteTile extends ImageView {
        System.out.println("Width: " + tile.getWidth());
        System.out.println("Lehgth: " + tile.getLength());
 
-       setFitWidth(tile.getWidth() * upd.getResize());
-       setFitHeight(tile.getLength() * upd.getResize());
+    //    setFitWidth(tile.getWidth() * upd.getResize());
+    //    setFitHeight(tile.getLength() * upd.getResize());
 
-    //    setTranslateX(upd.getDeltaX());
-    //    setTranslateY(upd.getDeltaY());
+    //    translateDesire(getLayoutX(), getLayoutY(),
+    //                    getLayoutX() + upd.getDeltaX(), getLayoutY() + upd.getDeltaY());
     }
     // the problem is that tiles comparison happens implicitely and result is not controlled
     // need to properly override equals method
@@ -165,4 +188,8 @@ public class SpriteTile extends ImageView {
             return true;
         return false;
     }
+
+    private static boolean areDoublesEqual(double a, double b, double epsilon) {
+        return Math.abs(a - b) < epsilon;
+}
 }

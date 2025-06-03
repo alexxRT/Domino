@@ -31,10 +31,21 @@ public class DominoGame {
         // here tile has updated and correct coordinates of top left corner
         Tile tableTile = placeTileOnBoard(newTile);
 
+        // System.out.println(" ---------------- Placing ----------------");
+        // System.out.println("Right tile: " + rightTile.toString());
+        // System.out.println("Left tile: " + leftTile.toString());
+        // System.out.println("Placing tile: " + newTile.toString());
+        // System.out.println("Tile on table: " + tableTile.toString());
+        // System.out.println("\n\n\n");
+
         // this delta with respective to table tile left top corner coordinate
-        int placeRight = rightTile == newTile ? 1 : 0;
+        int placeRight = rightTile == newTile ? 0 : 1;
+        // System.out.println("Placing right: " + placeRight);
         double deltaX = getTileDeltaX(tableTile, newTile)[placeRight];
         double deltaY = getTileDeltaY(tableTile, newTile)[placeRight];
+
+        // System.out.println("deltaX = " + deltaX);
+        // System.out.println("deltaY = " + deltaY);
 
         return createPlaceMoveResponse(tableTile, newTile, deltaX, deltaY);
     }
@@ -125,17 +136,15 @@ public class DominoGame {
     }
 
     private Tile setupTileConnection(Tile tableTile, Tile newTile) {
-        int connectVal = tableTile == leftTile ? leftTile.getLowVal() :
-                                                 rightTile.getHighVal();
+        int connectVal = tableTile == leftTile ? leftTile.getConnectVal() :
+                                                 rightTile.getConnectVal();
 
         newTile.setVertical(newTile.getHighVal() == newTile.getLowVal());
 
-        double rotateDegree = 0;
-        if (!newTile.isVertical())
-            rotateDegree = tableTile == rightTile ? 90 : -90;
-
-        newTile.setRotate(rotateDegree);
-        newTile.setSwap(connectVal == newTile.getLowVal());
+        if (!newTile.isVertical()) {
+            newTile.setRotate(tableTile == leftTile ? 90 : -90);
+            newTile.setSwap(connectVal == newTile.getLowVal());
+        }
 
         return newTile;
     }
@@ -154,8 +163,7 @@ public class DominoGame {
         if (tableTile.isVertical())
             return new double[]{tableTile.getWidth(), 0};
 
-        return new double[]{tableTile.getLength(),
-                            -placeTile.getWidth()};
+        return new double[]{tableTile.getLength(), -placeTile.getWidth()};
     }
 
     private double[] placeVerticalY(Tile tableTile, Tile placeTile) {
@@ -203,7 +211,7 @@ public class DominoGame {
         double[] deltaY;
 
          if (!(newTile.isVertical() || tableTile.isVertical())) {
-            deltaX = new double[]{tableTile.getWidth(), -tableTile.getLength()};
+            deltaX = new double[]{tableTile.getLength(), -tableTile.getLength()};
             deltaY = new double[]{0, 0};
          } else {
             deltaX = tableTile.isVertical() ?
@@ -214,12 +222,18 @@ public class DominoGame {
                                   tableTile.getLength() / 2 - newTile.getWidth() / 2};
          }
 
+        // case rightTile == leftTile == (n | n) at the beginning of the game
+        if (rightTile == leftTile) { // this if happens only once, maybe rewrite logic? ....
+            leftTile = newTile.getRotateDegree() == 90 ? newTile : leftTile;
+            rightTile = newTile.getRotateDegree() == -90 ? newTile : rightTile;
+        } else {
+            rightTile = tableTile == rightTile ? newTile : rightTile;
+            leftTile = tableTile == leftTile ? newTile : leftTile;
+        }
+
         // set new domino on table logic
         newTile.setX(tableTile.getX() + deltaX[newTile == rightTile ? 0 : 1]);
         newTile.setY(tableTile.getY() + deltaY[newTile == rightTile ? 0 : 1]);
-
-        rightTile = tableTile == rightTile ? newTile : rightTile;
-        leftTile = tableTile == leftTile ? newTile : leftTile;
     }
 
     private GameResponse createPlaceMoveResponse(Tile tableTile, Tile placedTile, double deltaX, double deltaY) {
@@ -241,8 +255,8 @@ public class DominoGame {
         double resizeCoeff = calculateResizeCoefficient();
         double deltaX = calculateTranslation();
 
-        applyTranslation(deltaX);
-        applyResize(resizeCoeff);
+        // applyTranslation(deltaX);
+        // applyResize(resizeCoeff);
 
         response.setUpdate(resizeCoeff, deltaX, 0);
         return response;

@@ -149,8 +149,7 @@ public class GameTable extends Group {
                 opponentDeck.removeTile();
                 addTile(placeTileSprite);
                 placeTileSprite.translateDesire(opponentDeck.getLayoutX() + opponentDeck.getWidth() / 2,
-                opponentDeck.getLayoutY() + opponentDeck.getHeight() / 2,
-                placeTile.getX(), placeTile.getY(), placeTile.getRotateDegree());
+                opponentDeck.getLayoutY() + opponentDeck.getHeight() / 2, placeTile);
             });
             return true;
         }

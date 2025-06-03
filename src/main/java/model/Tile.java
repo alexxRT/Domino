@@ -46,11 +46,26 @@ public class Tile {
         }
     }
 
+    public int getConnectVal() {
+        if (lowVal == highVal)
+            return lowVal;
+            
+        // tile was placed at left chain tail
+        if (rotateDegree == 90 || rotateDegree == -90)
+            return swap ? highVal : lowVal;
+
+        throw new RuntimeException("Placed tile without set rotation degree");
+    }
+
+    // this method is applied on placed and new upcoming tile (nextTile)
+    // disigned poorly and later should be moved outside Tile class definition
     public boolean isConnectable(Tile nextTile) {
-        if (highVal == nextTile.getLowVal() || highVal == nextTile.getHighVal())
+        if ((highVal == nextTile.getLowVal() || highVal == nextTile.getHighVal())
+            && highVal == getConnectVal())
             return true;
 
-        if (lowVal == nextTile.getLowVal() || lowVal == nextTile.getHighVal())
+        if ((lowVal == nextTile.getLowVal() || lowVal == nextTile.getHighVal())
+            && lowVal == getConnectVal())
             return true;
 
         return false;

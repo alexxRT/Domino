@@ -16,14 +16,4 @@ public class HandDeckPlayer extends HandDeck{
         tiles.add(tile);
         getChildren().add(new SpriteTile(tile, true));
     }
-
-    public void addTile(SpriteTile tile) {
-        tile.setTranslateX(0);
-        tile.setTranslateY(0);
-        tile.setLayoutX(0);
-        tile.setLayoutY(0);
-
-        tiles.add(tile.getTile());
-        getChildren().add(tile);
-    }
 }

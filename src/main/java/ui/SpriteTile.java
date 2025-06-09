@@ -93,7 +93,7 @@ public class SpriteTile extends ImageView {
                 // if not, return back in deck
                 if (!DominoGame.dominoOn) {
                     table.removeTile(toPlace);
-                    table.addPlayerDeck(toPlace);
+                    table.addPlayerDeck(toPlace.getTile());
                     return;
                 }
 
@@ -114,13 +114,13 @@ public class SpriteTile extends ImageView {
                 }
                 else { // return tile back in deck
                     table.removeTile(toPlace);
-                    table.addPlayerDeck(toPlace);
+                    table.addPlayerDeck(toPlace.getTile());
                 }
             }
             catch (IOException ioExp) {
                 System.out.println("Bad server response when placing new tile");
                 table.removeTile(toPlace);
-                table.addPlayerDeck(toPlace); // even if server is unreachable -> keep UI consistent
+                table.addPlayerDeck(toPlace.getTile()); // even if server is unreachable -> keep UI consistent
             }
         }
     }

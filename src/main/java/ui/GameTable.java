@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
+import javafx.scene.control.Label;
 
 import connection.Connection;
+import client.DominoClient;
 import game.DominoGame;
 import model.*;
 
@@ -25,6 +27,8 @@ public class GameTable extends Group {
 
     private serverHandler handlerResponse;
 
+    private Label statusText;
+
     public GameTable(Connection server, double width, double hight) {
         this.width = width;
         this.hight = hight;
@@ -32,7 +36,12 @@ public class GameTable extends Group {
         initDecks();
         initBazar();
 
-        getChildren().addAll(playerDeck, opponentDeck, bazarTiles);
+        statusText = new Label();
+        updateStatusText();
+        statusText.setLayoutX(820);
+        statusText.setLayoutY(320);
+
+        getChildren().addAll(playerDeck, opponentDeck, bazarTiles, statusText);
 
         // to recieve server updates
         handlerResponse = new serverHandler(server);
@@ -83,6 +92,30 @@ public class GameTable extends Group {
         }
     }
 
+    public void updateStatusText() {
+        if (DominoClient.dominoOn) {
+            statusText.setText("Your move");
+            statusText.setStyle(
+                "-fx-background-color: radial-gradient(center 50% 50%, radius 100%, #FFA500, #FFFF00);" +
+                "-fx-background-radius: 15;" +
+                "-fx-padding: 12 20 12 20;" +
+                "-fx-text-fill: #2F4F4F;" +
+                "-fx-font-weight: bold;" +
+                "-fx-font-size: 18px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(255,215,0,0.6), 8, 0.5, 0, 2);");
+        } else {
+            statusText.setText("Opponent move");
+            statusText.setStyle(
+                "-fx-background-color: rgba(70, 70, 70, 0.8);" +
+                "-fx-background-radius: 15;" +
+                "-fx-padding: 12 20 12 20;" +
+                "-fx-text-fill: #CCCCCC;" +
+                "-fx-font-weight: normal;" +
+                "-fx-font-size: 16px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 3, 0.3, 0, 1);");
+        }
+    }
+
     private void initBazar() {
         double tilesHight = hight / 4;
         double tilesWidth = hight / 4;
@@ -119,9 +152,10 @@ public class GameTable extends Group {
                     System.err.println("Recieved from backend: " + serverMessage);
                     GameResponse response = new GameResponse(serverMessage);
 
-                    if (response.getType() == ResponseType.MAKE_MOVE)
-                        DominoGame.dominoOn = true;
-                    else {
+                    if (response.getType() == ResponseType.MAKE_MOVE) {
+                        DominoClient.dominoOn = true;
+                        Platform.runLater(() -> { updateStatusText(); });
+                    } else {
                         boolean isHandled = handleUpdate(response);
                         if (!isHandled)
                             serverResponses.add(response);
@@ -192,6 +226,6 @@ public class GameTable extends Group {
             System.out.println("Unable start new game, due to network issues!");
             e.printStackTrace();
         }
-
     }
+
 }

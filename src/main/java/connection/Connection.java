@@ -7,38 +7,23 @@ public class Connection {
     private BufferedWriter out;
     private Socket socket;
 
-    public Connection(String ipAddress, int port) {
-        try {
-            socket = new Socket(ipAddress, port);
-            in     = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out    = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            System.out.println("Successfully inited connection to remote!");
-        }
-        catch (UnknownHostException e) {
-            System.out.println("Host with ip:" + ipAddress + " and port: " + port + " is unknown!");
-            e.printStackTrace();
-        }
-        catch (IOException e) {
-            System.out.println("Unable to init stable connection!");
-            e.printStackTrace();
-        }
+    public Connection(String ipAddress, int port) throws IOException {
+        socket = new Socket(ipAddress, port);
+        in     = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out    = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        System.out.println("Successfully inited connection to remote!");
     }
 
-    public Connection(Socket socket) {
+    public Connection(Socket socket) throws IOException {
         if (socket.isClosed() || !socket.isConnected()) {
             System.out.println("Attempt to init connection via invlid socket!");
             throw new ExceptionInInitializerError(new String("Bad socket on connection init!"));
         }
-        try {
-            this.socket = socket;
-            in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            System.out.println("Successfully inited connection to remote!");
-        }
-        catch (IOException e) {
-            System.out.println("Unable to init stable connection!");
-            e.printStackTrace();
-        }
+
+        this.socket = socket;
+        in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        System.out.println("Successfully inited connection to remote!");
     }
 
     public void sendString(String string) throws IOException {

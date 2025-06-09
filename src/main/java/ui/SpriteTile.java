@@ -9,7 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import connection.Connection;
-import game.DominoGame;
+import client.DominoClient;
 
 public class SpriteTile extends ImageView {
     private Tile tile;
@@ -91,7 +91,7 @@ public class SpriteTile extends ImageView {
             try {
                 // checks if currently my move to do
                 // if not, return back in deck
-                if (!DominoGame.dominoOn) {
+                if (!DominoClient.dominoOn) {
                     table.removeTile(toPlace);
                     table.addPlayerDeck(toPlace.getTile());
                     return;
@@ -110,7 +110,8 @@ public class SpriteTile extends ImageView {
                     slideTile.disable(toPlace);
                     setOnMouseReleased(null);
 
-                    DominoGame.dominoOn = false; // end current move
+                    DominoClient.dominoOn = false; // end current move
+                    table.updateStatusText();
                 }
                 else { // return tile back in deck
                     table.removeTile(toPlace);

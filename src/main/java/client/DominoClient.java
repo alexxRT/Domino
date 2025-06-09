@@ -37,17 +37,17 @@ public class DominoClient extends Application{
         primaryStage.setTitle("testBoard");
         Group rootGroup = new Group();
 
-        // ImageView background = new ImageView();
-        // try {
-        //     String tablePath = getClass().getResource("/dominoTable.jpeg").toExternalForm();
-        //     background.setImage(new Image(tablePath));
-        // } catch (Exception e) {
-        //     System.out.println("Bad image init for tile!");
-        //     e.printStackTrace();
-        // }
-        // background.setFitHeight(500);
-        // background.setFitWidth(1000);
-        // rootGroup.getChildren().add(background);
+        ImageView background = new ImageView();
+        try {
+            String tablePath = getClass().getResource("/dominoTable.jpeg").toExternalForm();
+            background.setImage(new Image(tablePath));
+        } catch (Exception e) {
+            System.out.println("Bad image init for tile!");
+            e.printStackTrace();
+        }
+        background.setFitHeight(500);
+        background.setFitWidth(1000);
+        rootGroup.getChildren().add(background);
 
         Canvas canvas = new Canvas(COLS * CELL_SIZE, ROWS * CELL_SIZE);
         drawGrid(canvas);
@@ -70,10 +70,6 @@ public class DominoClient extends Application{
             for (int col = 0; col < COLS; col++) {
                 double x = col * CELL_SIZE;
                 double y = row * CELL_SIZE;
-
-                // Draw filled square (optional)
-                gc.setFill(Color.WHITE);
-                gc.fillRect(x, y, CELL_SIZE, CELL_SIZE);
 
                 // Draw square border
                 gc.setStroke(Color.RED);

@@ -45,10 +45,6 @@ public class GameTable extends Group {
         playerDeck.addTile(tile);
     }
 
-    public void addPlayerDeck(SpriteTile tile) {
-        playerDeck.addTile(tile);
-    }
-
     public void removePlayerDeck(SpriteTile removeTile) {
         playerDeck.removeTile(removeTile);
     }
@@ -198,5 +194,4 @@ public class GameTable extends Group {
         }
 
     }
-
 }

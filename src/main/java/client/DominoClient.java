@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.scene.control.*;
 import java.io.*;
+import java.util.*;
 import javafx.geometry.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.effect.GaussianBlur;
@@ -191,13 +192,14 @@ public class DominoClient extends Application{
 
     private void gameOver(Stage primaryStage, GameTable table, Status status) {
         Group backgroundGroup = new Group();
-
-        backgroundGroup.getChildren().add(table);
-        backgroundGroup.setEffect(new GaussianBlur(10));
+        ArrayList<Node> currentChildren = new ArrayList<>(table.getChildren());
 
         table.getChildren().clear();
-        table.getChildren().add(backgroundGroup);
 
+        backgroundGroup.getChildren().addAll(currentChildren);
+        backgroundGroup.setEffect(new GaussianBlur(10));
+
+        table.getChildren().add(backgroundGroup);
         table.getChildren().add(endGameWindow(primaryStage, status));
     }
 

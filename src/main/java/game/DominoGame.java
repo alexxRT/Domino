@@ -19,6 +19,12 @@ public class DominoGame {
         for (int i = 0; i <= 6; i ++)
             for (int j = 0; j <= i; j ++)
                bazarTiles.add(new Tile(i, j));
+
+        // remove random n = 10 tiles to speedup game
+        int n = 10;
+        for (int i = 0; i < n; i ++) {
+            getRandomTile();
+        }
     }
 
     public GameResponse placeTile(Tile newTile) {
@@ -89,10 +95,14 @@ public class DominoGame {
         return randomTile;
     }
 
-    private boolean isMoveValid(Tile tile) {
+    public boolean isMoveValid(Tile tile) {
         if (placedTiles.isEmpty())
             return tile.getHighVal() == tile.getLowVal(); // start game only with n | n tile
         return leftTile.isConnectable(tile) || rightTile.isConnectable(tile);
+    }
+
+    public int getBazarNum() {
+        return bazarTiles.size();
     }
 
     private Tile placeTileOnBoard(Tile newTile) {
@@ -216,8 +226,12 @@ public class DominoGame {
             new double[]{tableTile.getWidth(), -newTile.getLength()} :
             new double[]{tableTile.getLength(), -newTile.getWidth()};
 
-            deltaY = new double[]{tableTile.getLength() / 2 - newTile.getWidth() / 2,
-                                  tableTile.getLength() / 2 - newTile.getWidth() / 2};
+
+            deltaY = tableTile.isVertical() ?
+            new double[]{tableTile.getLength() / 2 - newTile.getWidth() / 2,
+                         tableTile.getLength() / 2 - newTile.getWidth() / 2} :
+            new double[]{tableTile.getWidth() / 2 - newTile.getLength() / 2,
+                         tableTile.getWidth() / 2 - newTile.getLength() / 2};
          }
 
         // case rightTile == leftTile == (n | n) at the beginning of the game

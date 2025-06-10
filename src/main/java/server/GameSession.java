@@ -48,12 +48,12 @@ public class GameSession {
 
                 case PLACE_MOVE:
                     handledResp.addAll(handlePlaceTile(player, opponent, commandBody.getTile()));
-                    handledResp.addAll(handleGameOver(player, opponent));
+                    handledResp.addAll(handleGameOver(player, opponent, ResponseType.PLACE_MOVE));
                     break;
 
                 case GET_TILE: // get random tile on request
                     handledResp.addAll(handleGetTile(player, opponent));
-                    handledResp.addAll(handleGameOver(player, opponent));
+                    handledResp.addAll(handleGameOver(player, opponent, ResponseType.GET_TILE));
                     break;
 
                 case UNKNOWN:
@@ -126,8 +126,61 @@ public class GameSession {
         return onPlaceTile;
     }
 
-    private ArrayList<Response> handleGameOver(PlayerData player, PlayerData opponent) {
-        return new ArrayList<>();
+    // implement logic of endGame
+    private ArrayList<Response> handleGameOver(PlayerData player, PlayerData opponent, ResponseType rType) {
+        ArrayList<Response> endResponse = new ArrayList<>();
+
+        // 1. Determine if two players in general have a valid moves
+        boolean playerMove = false;
+        for (Tile pTile: player.getTiles()) {
+            playerMove = game.isMoveValid(pTile);
+            if (playerMove)
+                break;
+        }
+        boolean oppMove = false;
+        for (Tile opTile: opponent.getTiles()) {
+            oppMove = game.isMoveValid(opTile);
+            if (oppMove)
+                break;
+        }
+
+        GameResponse draw = new GameResponse(ResponseType.GAME_OVER, Status.DRAW);
+        GameResponse victory = new GameResponse(ResponseType.GAME_OVER, Status.VICTORY);
+        GameResponse lose = new GameResponse(ResponseType.GAME_OVER, Status.DEFEAT);
+
+        // 2.1 Player does not have tiles -> player VICTORY
+        if (player.getTiles().size() == 0) {
+            endResponse.add(new Response(player.getConnection(), victory));
+            endResponse.add(new Response(opponent.getConnection(), lose));
+            return endResponse;
+        }
+
+        // tiles left in bazar -> possible to take -> no game over
+        if (game.getBazarNum() != 0)
+            return endResponse;
+
+        // 2.1 Both players do not have valid move -> DRAW
+        if (!playerMove && !oppMove) {
+            endResponse.add(new Response(player.getConnection(), draw));
+            endResponse.add(new Response(opponent.getConnection(), draw));
+            return endResponse;
+        }
+
+        // 2.2 player has valid move but opponent does not -> player VICTORY
+        if (!oppMove) {
+            endResponse.add(new Response(player.getConnection(), victory));
+            endResponse.add(new Response(opponent.getConnection(), lose));
+            return endResponse;
+        }
+
+        // 2.3 player took all tiles and does not have valid move -> player DEFEAT
+        if (!playerMove && rType == ResponseType.GET_TILE) {
+            endResponse.add(new Response(player.getConnection(), lose));
+            endResponse.add(new Response(opponent.getConnection(), victory));
+            return endResponse;
+        }
+
+        return endResponse;
     }
 
     private PlayerData getOpponent(Connection player) {

@@ -180,7 +180,8 @@ public class GameTable extends Group {
                         DominoClient.dominoOn = true;
                         Platform.runLater(() -> { updateStatusText(); });
                     } else if (respType == ResponseType.GAME_OVER) {
-                        endGame(response.getStatus());
+                        DominoClient.dominoOn = false;
+                        Platform.runLater(() -> { endGame(response.getStatus()); });
                     } else {
                         boolean isHandled = handleUpdate(response);
                         if (!isHandled)
@@ -257,7 +258,6 @@ public class GameTable extends Group {
     }
 
     private void endGame(Status status) {
-        DominoClient.dominoOn = false;
         if (gameEndCallback != null) {
             gameEndCallback.onGameEnd(status);
         }

@@ -39,8 +39,6 @@ public class BazarTiles extends Region {
         setLayoutX(posX);
         setLayoutY(posY);
 
-        setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-
         // load status images
         String spritePath = getClass().getResource("/dominos.jpeg").toExternalForm();
         try {

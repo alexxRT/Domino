@@ -20,9 +20,6 @@ import javafx.animation.*;
 import javafx.util.*;
 
 public class DominoClient extends Application{
-    private static final int CELL_SIZE = 56;
-    private static final int ROWS = 9;
-    private static final int COLS = 27;
     public static boolean dominoOn = false;
 
     private static String serverIP;
@@ -156,16 +153,12 @@ public class DominoClient extends Application{
             background.setFitWidth(1000);
             rootGroup.getChildren().add(background);
 
-            Canvas canvas = new Canvas(COLS * CELL_SIZE, ROWS * CELL_SIZE);
-            drawGrid(canvas);
-
             GameTable table = new GameTable(dominoServer, 1000, 500);
             table.setGameEndCallback(status -> gameOver(primaryStage, table, status));
             table.setGameSessionCallback(id -> primaryStage.setTitle("SessionID: " + id));
 
             table.startNewGame(sessionID);
 
-            rootGroup.getChildren().add(canvas);
             rootGroup.getChildren().add(table);
 
             Scene startGame = new Scene(rootGroup, 1000, 500);
@@ -275,18 +268,6 @@ public class DominoClient extends Application{
             else
                 buttonImage.setStyle("-fx-effect: null;");
         });
-    }
-
-    private void drawGrid(Canvas canvas) {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                double x = col * CELL_SIZE;
-                double y = row * CELL_SIZE;
-                gc.setStroke(Color.RED);
-                gc.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
-            }
-        }
     }
 
     private int getIntFromTextField(TextField textField) {

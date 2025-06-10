@@ -10,6 +10,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import connection.Connection;
 import client.DominoClient;
+import javafx.animation.*;
+import javafx.util.Duration;
 
 public class SpriteTile extends ImageView {
     private Tile tile;
@@ -164,17 +166,27 @@ public class SpriteTile extends ImageView {
     public void setID(int newID) { tileID = newID; }
 
     public void applyUpdate(Update upd) {
-       System.out.println("Width: " + tile.getWidth());
-       System.out.println("Lehgth: " + tile.getLength());
 
-    //    setFitWidth(tile.getWidth() * upd.getResize());
-    //    setFitHeight(tile.getLength() * upd.getResize());
+        double deltaX = upd.getDeltaX();
+        if (!areDoublesEqual(deltaX, 0.0, 1e-9)) {
+            TranslateTransition transition = new TranslateTransition();
+            transition.setNode(this);
+            transition.setByX(deltaX);
+            transition.setDuration(Duration.millis(300)); // Adjust duration as needed
+            transition.play();
+        }
 
-    //    translateDesire(getLayoutX(), getLayoutY(),
-    //                    getLayoutX() + upd.getDeltaX(), getLayoutY() + upd.getDeltaY());
+        double resizeScale = upd.getResize();
+        if (!areDoublesEqual(resizeScale, 1.0, 1e-9)) {
+            System.out.println("Resize scale coeff: " + resizeScale);
+            ScaleTransition scaleTransition = new ScaleTransition();
+            scaleTransition.setNode(this);
+            scaleTransition.setToX(resizeScale);
+            scaleTransition.setToY(resizeScale);
+            scaleTransition.setDuration(Duration.millis(300));
+            scaleTransition.play();
+        }
     }
-    // the problem is that tiles comparison happens implicitely and result is not controlled
-    // need to properly override equals method
 
     @Override
     public boolean equals(Object obj) {

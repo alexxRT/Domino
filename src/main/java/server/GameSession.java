@@ -48,6 +48,7 @@ public class GameSession {
 
                 case PLACE_MOVE:
                     handledResp.addAll(handlePlaceTile(player, opponent, commandBody.getTile()));
+                    handledResp.addAll(handleTransforms(player, opponent));
                     handledResp.addAll(handleGameOver(player, opponent, ResponseType.PLACE_MOVE));
                     break;
 
@@ -124,6 +125,17 @@ public class GameSession {
         }
 
         return onPlaceTile;
+    }
+
+    private ArrayList<Response> handleTransforms(PlayerData player, PlayerData opponent) {
+        ArrayList<Response> updResp = new ArrayList<>();
+
+        GameResponse update = game.updatePos();
+
+        updResp.add(new Response(player.getConnection(), update));
+        updResp.add(new Response(opponent.getConnection(), update));
+
+        return updResp;
     }
 
     // implement logic of endGame

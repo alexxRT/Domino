@@ -49,16 +49,11 @@ public class MoveDesire {
             double axisX = toMove.getFitWidth() / 2;
             double axisY = toMove.getFitHeight() / 2;
 
-            System.out.println("axisX = " + axisX);
-            System.out.println("axisY = " + axisY);
-
             Rotate rotateCenter = new Rotate(0, axisX, axisY);
             toMove.getTransforms().add(rotateCenter);
 
             frameEventsStart.add(new KeyValue(rotateCenter.angleProperty(), 0));
             frameEventsEnd.add(new KeyValue(rotateCenter.angleProperty(), 180));
-
-            System.out.println("Add swap 180 for tile");
         }
 
         frameEventsStart.add(new KeyValue(toMove.layoutXProperty(), fromX));

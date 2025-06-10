@@ -26,7 +26,6 @@ public class HandDeck extends HBox {
         setLayoutY(posY);
 
         setAlignment(Pos.CENTER);
-        setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
     }
 
     public List<Tile> getTiles() {

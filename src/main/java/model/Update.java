@@ -27,9 +27,9 @@ public class Update {
                 System.out.println("Input json does not contain required fileds for Tile.");
                 return;
             }
-            resizeCoeff = update.get("resize").asInt();
-            translateX = update.get("deltaX").asInt();
-            translateY = update.get("deltaY").asInt();
+            resizeCoeff = update.get("resize").asDouble();
+            translateX = update.get("deltaX").asDouble();
+            translateY = update.get("deltaY").asDouble();
         }
         catch (JsonProcessingException e) {
             System.out.println("Unable to parse tile from json!");

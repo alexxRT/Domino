@@ -8,9 +8,16 @@ import connection.Connection;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
+import javafx.scene.text.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import java.io.*;
+import javafx.geometry.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.effect.GaussianBlur;
+import model.*;
+import javafx.animation.*;
+import javafx.util.*;
 
 public class DominoClient extends Application{
     private static final int CELL_SIZE = 56;
@@ -43,7 +50,7 @@ public class DominoClient extends Application{
         welcomeBackground.setFitHeight(500);
         welcomeBackground.setFitWidth(1000);
 
-        ImageView buttonImage = setButtonImage();
+        ImageView buttonImage = setButtonImage("/startButton.png");
         buttonImage.setFitHeight(70);
         buttonImage.setFitWidth(270);
 
@@ -65,10 +72,60 @@ public class DominoClient extends Application{
         return welcomeGroup;
     }
 
-    private void startGame(Stage primaryStage) {
-        Group rootGroup = new Group();
+    private Group endGameWindow(Stage primaryStage, Status status) {
+        ImageView buttonImage = setButtonImage("/newGame.png");
+        buttonImage.setFitWidth(300);
+        buttonImage.setFitHeight(150);
 
+        Button resetButton = new Button();
+        resetButton.setGraphic(buttonImage);
+        resetButton.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+
+        addButtonEffects(resetButton, buttonImage);
+        resetButton.setOnAction(e -> resetGame(primaryStage));
+
+        Text endGameText = new Text();
+        endGameText.setFont(Font.font("Arial", FontWeight.BOLD, 100));
+        endGameText.setStroke(Color.BLACK);
+        endGameText.setStrokeWidth(4.0);
+        endGameText.setFill(Color.ORANGE);
+
+        switch (status) {
+            case VICTORY:
+                endGameText.setText("YOU WON!");
+                break;
+            case DRAW:
+                endGameText.setText("DRAW");
+                break;
+            case DEFEAT:
+                endGameText.setText("YOU LOSE!");
+                break;
+            default:
+                endGameText.setText("UNKNOWN");
+            endGameText.applyCss();
+        }
+
+        double stageWidth = primaryStage.getWidth();
+        double stageHeight = primaryStage.getHeight();
+        double textWidth = endGameText.getBoundsInLocal().getWidth();
+
+        resetButton.setLayoutX(stageWidth / 2 - 300 / 2);
+        resetButton.setLayoutY(stageHeight - 70 * 4);
+        endGameText.setLayoutX(stageWidth / 2 - textWidth / 2);
+        endGameText.setLayoutY(stageHeight / 2 - 100);
+
+        Group endGameGroup = new Group();
+        endGameGroup.getChildren().addAll(resetButton, endGameText);
+
+        animateScaleUp(resetButton, 1);
+        animateScaleUp(endGameText, 0.5);
+
+        return endGameGroup;
+    }
+
+    private void startGame(Stage primaryStage) {
         try {
+            Group rootGroup = new Group();
             dominoServer = new Connection(serverIP, serverPort);
             primaryStage.setTitle("testBoard");
             ImageView background = setGameBackground();
@@ -78,13 +135,18 @@ public class DominoClient extends Application{
 
             Canvas canvas = new Canvas(COLS * CELL_SIZE, ROWS * CELL_SIZE);
             drawGrid(canvas);
+
             GameTable table = new GameTable(dominoServer, 1000, 500);
+            table.setGameEndCallback(status -> gameOver(primaryStage, table, status));
+
             rootGroup.getChildren().add(canvas);
             rootGroup.getChildren().add(table);
 
+            Scene startGame = new Scene(rootGroup, 1000, 500);
+            primaryStage.setScene(startGame);
+            primaryStage.show();
         } catch (IOException badConnection) {
-            primaryStage.setTitle("Connecting...");
-            rootGroup = welcomeWindow(primaryStage);
+            Group rootGroup = (Group)primaryStage.getScene().getRoot();
 
             ProgressIndicator spinner = new ProgressIndicator();
             spinner.setStyle("-fx-progress-color: orange; -fx-accent: #FFD700;");
@@ -93,14 +155,33 @@ public class DominoClient extends Application{
             spinner.setLayoutX(480);
             spinner.setLayoutY(420);
 
-            rootGroup.getChildren().add(spinner);
+            if (primaryStage.getTitle() == "DOMINO")
+                rootGroup.getChildren().add(spinner);
 
+            primaryStage.setTitle("Connecting...");
             System.out.println("Bad connection attempt!");
             badConnection.printStackTrace();
         }
+    }
 
-        Scene startGame = new Scene(rootGroup, 1000, 500);
-        primaryStage.setScene(startGame);
+    private void gameOver(Stage primaryStage, GameTable table, Status status) {
+        Group backgroundGroup = new Group();
+
+        backgroundGroup.getChildren().add(table);
+        backgroundGroup.setEffect(new GaussianBlur(10));
+
+        table.getChildren().clear();
+        table.getChildren().add(backgroundGroup);
+
+        table.getChildren().add(endGameWindow(primaryStage, status));
+    }
+
+    private void resetGame(Stage primaryStage) {
+        primaryStage.setTitle("DOMINO");
+        Group welcome = welcomeWindow(primaryStage);
+
+        Scene welcomeScene = new Scene(welcome, 1000, 500);
+        primaryStage.setScene(welcomeScene);
         primaryStage.show();
     }
 
@@ -116,10 +197,10 @@ public class DominoClient extends Application{
         return background;
     }
 
-    private ImageView setButtonImage() {
+    private ImageView setButtonImage(String imagePath) {
         ImageView buttonImg = new ImageView();
         try {
-            String buttonPath = getClass().getResource("/startButton.png").toExternalForm();
+            String buttonPath = getClass().getResource(imagePath).toExternalForm();
             buttonImg.setImage(new Image(buttonPath));
         } catch (Exception e) {
             System.out.println("Bad image init for start button!");
@@ -179,5 +260,29 @@ public class DominoClient extends Application{
                 gc.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
             }
         }
+    }
+
+    private void animateScaleUp(Node node, double delaySeconds) {
+        node.setScaleX(0);
+        node.setScaleY(0);
+        node.setOpacity(0);
+
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.seconds(0.5), node);
+        scaleTransition.setFromX(0);
+        scaleTransition.setFromY(0);
+        scaleTransition.setToX(1.0);
+        scaleTransition.setToY(1.0);
+
+        Timeline fadeIn = new Timeline(
+            new KeyFrame(Duration.seconds(0.5),
+                new KeyValue(node.opacityProperty(), 1.0)
+            )
+        );
+
+        scaleTransition.setDelay(Duration.seconds(delaySeconds));
+        fadeIn.setDelay(Duration.seconds(delaySeconds));
+
+        scaleTransition.play();
+        fadeIn.play();
     }
 }

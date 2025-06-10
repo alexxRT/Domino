@@ -9,8 +9,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.*;
 import java.io.*;
 import javafx.geometry.*;
 import javafx.scene.layout.VBox;
@@ -59,15 +58,39 @@ public class DominoClient extends Application{
         startButton.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
 
         startButton.setLayoutX(360);
-        startButton.setLayoutY(330);
+        startButton.setLayoutY(340);
 
+        // Add input text field
+        TextField inputField = new TextField();
+        inputField.setPromptText("Enter sessionID");
+        inputField.setPrefWidth(200);
+        inputField.setLayoutX(400);
+        inputField.setLayoutY(290);
+        inputField.setStyle(
+            "-fx-background-color: #4a3728;" +
+            "-fx-text-fill: #f4e4bc;" +
+            "-fx-prompt-text-fill: #a08060;" +
+            "-fx-border-color: #8b6914;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-font-size: 16px;" +
+            "-fx-font-family: 'Georgia', serif;" +
+            "-fx-padding: 8px 12px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 2, 2);"
+        );
         addButtonEffects(startButton, buttonImage);
-        startButton.setOnAction(e -> startGame(primaryStage));
+
+        startButton.setOnAction(e -> {
+            int sessionID = getIntFromTextField(inputField);
+            startGame(primaryStage, sessionID);
+        });
 
         Group welcomeGroup = new Group();
 
         welcomeGroup.getChildren().add(welcomeBackground);
         welcomeGroup.getChildren().add(startButton);
+        welcomeGroup.getChildren().add(inputField);
 
         return welcomeGroup;
     }
@@ -123,11 +146,10 @@ public class DominoClient extends Application{
         return endGameGroup;
     }
 
-    private void startGame(Stage primaryStage) {
+    private void startGame(Stage primaryStage, int sessionID) {
         try {
             Group rootGroup = new Group();
             dominoServer = new Connection(serverIP, serverPort);
-            primaryStage.setTitle("testBoard");
             ImageView background = setGameBackground();
             background.setFitHeight(500);
             background.setFitWidth(1000);
@@ -138,6 +160,9 @@ public class DominoClient extends Application{
 
             GameTable table = new GameTable(dominoServer, 1000, 500);
             table.setGameEndCallback(status -> gameOver(primaryStage, table, status));
+            table.setGameSessionCallback(id -> primaryStage.setTitle("SessionID: " + id));
+
+            table.startNewGame(sessionID);
 
             rootGroup.getChildren().add(canvas);
             rootGroup.getChildren().add(table);
@@ -259,6 +284,19 @@ public class DominoClient extends Application{
                 gc.setStroke(Color.RED);
                 gc.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
             }
+        }
+    }
+
+    private int getIntFromTextField(TextField textField) {
+        try {
+            String text = textField.getText().trim();
+            if (text.isEmpty()) {
+                return -1;
+            }
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid number format. Using default value 0.");
+            return -1;
         }
     }
 

@@ -84,8 +84,10 @@ public class SpriteTile extends ImageView {
         public void handle(MouseEvent event) {
             GameTable table = getTable();
             Connection dominoServer = table.getConnection();
+            int sessionID = table.getSessionID();
 
             GameResponse placeRequest = new GameResponse(ResponseType.PLACE_MOVE);
+            placeRequest.setSessionID(sessionID);
             placeRequest.setTile(toPlace.getTile());
 
             try {

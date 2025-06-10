@@ -24,6 +24,7 @@ public class GameTable extends Group {
 
     private double width;
     private double hight;
+    private int sessionID;
 
     private serverHandler handlerResponse;
 
@@ -34,6 +35,16 @@ public class GameTable extends Group {
         void onGameEnd(Status status);
     }
     private GameEndCallback gameEndCallback;
+
+    @FunctionalInterface
+    public interface SessionIdCallback {
+        void setSessionID(int sessionID);
+    }
+    private SessionIdCallback setSessionIdCallback;
+
+    public void setGameSessionCallback(SessionIdCallback callback) {
+        this.setSessionIdCallback = callback;
+    }
 
     public void setGameEndCallback(GameEndCallback callback) {
         this.gameEndCallback = callback;
@@ -56,8 +67,6 @@ public class GameTable extends Group {
         // to recieve server updates
         handlerResponse = new serverHandler(server);
         new Thread(handlerResponse).start();
-
-        startNewGame();
     }
 
     public void addPlayerDeck(Tile tile) {
@@ -84,6 +93,10 @@ public class GameTable extends Group {
 
     public Connection getConnection() {
         return handlerResponse.server;
+    }
+
+    public int getSessionID() {
+        return sessionID;
     }
 
 
@@ -218,10 +231,12 @@ public class GameTable extends Group {
 
     // this function requests on server new tiles on game init
     // after that, client can recieve responses from server
-    private void startNewGame() {
+    public void startNewGame(int sessionID) {
         try {
             GameResponse askJoin = new GameResponse(ResponseType.JOIN_SESSION);
-            getConnection().sendString(new GameResponse(ResponseType.JOIN_SESSION).toString());
+            askJoin.setSessionID(sessionID);
+
+            getConnection().sendString(askJoin.toString());
             GameResponse response = getResponse(ResponseType.JOIN_SESSION);
 
             // joined session!
@@ -231,9 +246,9 @@ public class GameTable extends Group {
                     addPlayerDeck(newTile.getTile());
                     addOpponentDeck();
                 }
+                this.sessionID = response.getSessionID();
+                setSessionIdCallback.setSessionID(this.sessionID);
             }
-
-            System.out.println("Recieved all tiles!");
         }
         catch (IOException e) {
             System.out.println("Unable start new game, due to network issues!");

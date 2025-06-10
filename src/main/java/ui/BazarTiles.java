@@ -76,7 +76,10 @@ public class BazarTiles extends Region {
 
                 GameTable table = getTable();
                 Connection dominoServer = table.getConnection();
+                int sessionID = table.getSessionID();
+
                 GameResponse tileRequest = new GameResponse(ResponseType.GET_TILE);
+                tileRequest.setSessionID(sessionID);
 
                 dominoServer.sendString(tileRequest.toString());
                 System.out.println(tileRequest.toString());

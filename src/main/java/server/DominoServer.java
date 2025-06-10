@@ -10,7 +10,6 @@ public class DominoServer {
     private static int port = 12345;
 
     private static SessionManager manager = new SessionManager();
-    private static List<Thread> activeClients = new ArrayList<>();
 
     public static void main(String[] args) {
         String[] posArgs = {"server", "port"};
@@ -28,10 +27,8 @@ public class DominoServer {
 
             while (!serverSocket.isClosed()) {
                 Connection newPlayer = new Connection(serverSocket.accept());
-                Thread clientHandler = new Thread(new PlayerHandler(newPlayer, manager));
-                activeClients.add(clientHandler);
-
-                clientHandler.start(); // start handling newly connected client
+                // start thread on new connection
+                manager.startNewClient(newPlayer);
             }
         } catch (IOException e) {
             System.err.println("Server failed to start: " + e.getMessage());

@@ -14,9 +14,10 @@ public class GameResponse {
     private Update update = new Update();
     private Tile tile = new Tile();
     private Status status;
+    private int sessionID = -1;
 
     // needs to validate json inpput
-    static private final String[] jsonNodes = {"status", "type", "tile", "update"};
+    static private final String[] jsonNodes = {"id", "status", "type", "tile", "update"};
 
     public GameResponse(ResponseType type) {
         this.type = type;
@@ -40,6 +41,7 @@ public class GameResponse {
                 return;
             }
             // read json if all fields are presented
+            sessionID = response.get("id").asInt();
             type = ResponseType.values()[response.get("type").asInt()];
             status = Status.values()[response.get("status").asInt()];
             update = new Update(response.get("update").toString());
@@ -59,11 +61,16 @@ public class GameResponse {
         tile = placeTile;
     }
 
+    public void setSessionID(int ID) {
+        sessionID = ID;
+    }
+
     @Override
     public String toString() {
         ObjectNode response = JsonNodeFactory.instance.objectNode()
                                 .put("type", type.ordinal())
-                                .put("status", status.ordinal());
+                                .put("status", status.ordinal())
+                                .put("id", sessionID);
 
         response.set("tile", tile.toJsonNode());
         response.set("update", update.toJsonNode());
@@ -85,6 +92,10 @@ public class GameResponse {
 
     public Update getUpdate() {
         return update;
+    }
+
+    public int getSessionID() {
+        return sessionID;
     }
 
     static public JsonNode checkFormatValid(String bytes) throws JsonProcessingException {

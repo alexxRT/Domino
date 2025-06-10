@@ -49,7 +49,7 @@ public class Tile {
     public int getConnectVal() {
         if (lowVal == highVal)
             return lowVal;
-            
+
         // tile was placed at left chain tail
         if (rotateDegree == 90 || rotateDegree == -90)
             return swap ? highVal : lowVal;

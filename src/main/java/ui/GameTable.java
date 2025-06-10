@@ -29,6 +29,16 @@ public class GameTable extends Group {
 
     private Label statusText;
 
+    @FunctionalInterface
+    public interface GameEndCallback {
+        void onGameEnd(Status status);
+    }
+    private GameEndCallback gameEndCallback;
+
+    public void setGameEndCallback(GameEndCallback callback) {
+        this.gameEndCallback = callback;
+    }
+
     public GameTable(Connection server, double width, double hight) {
         this.width = width;
         this.hight = hight;
@@ -151,10 +161,13 @@ public class GameTable extends Group {
                 while ((serverMessage = server.recieveString()) != null) {
                     System.err.println("Recieved from backend: " + serverMessage);
                     GameResponse response = new GameResponse(serverMessage);
+                    ResponseType respType = response.getType();
 
-                    if (response.getType() == ResponseType.MAKE_MOVE) {
+                    if (respType == ResponseType.MAKE_MOVE) {
                         DominoClient.dominoOn = true;
                         Platform.runLater(() -> { updateStatusText(); });
+                    } else if (respType == ResponseType.GAME_OVER) {
+                        endGame(response.getStatus());
                     } else {
                         boolean isHandled = handleUpdate(response);
                         if (!isHandled)
@@ -225,6 +238,13 @@ public class GameTable extends Group {
         catch (IOException e) {
             System.out.println("Unable start new game, due to network issues!");
             e.printStackTrace();
+        }
+    }
+
+    private void endGame(Status status) {
+        DominoClient.dominoOn = false;
+        if (gameEndCallback != null) {
+            gameEndCallback.onGameEnd(status);
         }
     }
 

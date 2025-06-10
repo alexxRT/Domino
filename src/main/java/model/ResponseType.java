@@ -9,4 +9,5 @@ public enum ResponseType {
     JOIN_SESSION,
     MAKE_MOVE,
     GET_TILE,
+    GAME_OVER
 }

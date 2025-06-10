@@ -267,8 +267,8 @@ public class DominoGame {
         double resizeCoeff = calculateResizeCoefficient();
         double deltaX = calculateTranslation();
 
-        // applyTranslation(deltaX);
-        // applyResize(resizeCoeff);
+        applyTranslation(deltaX);
+        applyResize(resizeCoeff);
 
         response.setUpdate(resizeCoeff, deltaX, 0);
         return response;

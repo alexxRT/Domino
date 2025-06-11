@@ -22,13 +22,11 @@ import javafx.util.*;
 public class DominoClient extends Application{
     public static boolean dominoOn = false;
 
-    private static String serverIP;
-    private static int serverPort;
+    private final static String serverIP = ""
+    private final static int serverPort = 0;
     private Connection dominoServer;
 
     public static void main(String[] args) {
-        serverIP = args[1];
-        serverPort = Integer.parseInt(args[2]);
         launch(args);
     }
 

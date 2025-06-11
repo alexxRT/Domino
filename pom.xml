@@ -2,26 +2,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
+    <modelVersion>4.0.0</modelVersion>
     <groupId>com.domino</groupId>
-    <artifactId>domino-game</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>domino-duel</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <javafx.version>11</javafx.version>
+        <maven.compiler.source>22</maven.compiler.source>
+        <maven.compiler.target>22</maven.compiler.target>
+        <javafx.version>22.0.2</javafx.version>
     </properties>
 
     <dependencies>
-        <!-- JavaFX dependencies -->
+        <!-- Jackson dependency -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.17.3</version>
         </dependency>
+
+        <!-- JavaFX dependencies -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -58,7 +61,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.11.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
@@ -71,7 +74,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>client.ClientApp</mainClass>
+                    <mainClass>client.DominoClient</mainClass>
                 </configuration>
             </plugin>
 
@@ -79,7 +82,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.6.0</version>
                 <executions>
                     <!-- Create client JAR -->
                     <execution>
@@ -123,4 +126,158 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Profile for native packaging (requires Java 17+) -->
+    <profiles>
+        <!-- macOS Profile -->
+        <profile>
+            <id>macos</id>
+            <build>
+                <plugins>
+                    <!-- First create a fat JAR with dependencies -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                                    <filters>
+                                        <filter>
+                                            <artifact>*:*</artifact>
+                                            <excludes>
+                                                <exclude>META-INF/*.SF</exclude>
+                                                <exclude>META-INF/*.DSA</exclude>
+                                                <exclude>META-INF/*.RSA</exclude>
+                                            </excludes>
+                                        </filter>
+                                    </filters>
+                                    <transformers>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                            <mainClass>client.DominoClient</mainClass>
+                                        </transformer>
+                                    </transformers>
+                                    <finalName>DominoDuel-complete</finalName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <configuration>
+                            <n>DominoDuel</n>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>Domino Games</vendor>
+                            <destination>target/dist</destination>
+                            <input>target</input>
+                            <mainJar>DominoDuel-complete.jar</mainJar>
+                            <mainClass>client.DominoClient</mainClass>
+                            <type>DMG</type>
+                            <macSign>false</macSign>
+                            <!-- Add JVM arguments for JavaFX -->
+                            <javaOptions>
+                                <option>-Dfile.encoding=UTF-8</option>
+                                <option>-XstartOnFirstThread</option>
+                                <option>--add-opens=javafx.controls/com.sun.javafx.charts=ALL-UNNAMED</option>
+                                <option>--add-opens=javafx.graphics/com.sun.javafx.iio=ALL-UNNAMED</option>
+                                <option>--add-opens=javafx.graphics/com.sun.javafx.iio.common=ALL-UNNAMED</option>
+                                <option>--add-opens=javafx.graphics/com.sun.javafx.css=ALL-UNNAMED</option>
+                                <option>--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED</option>
+                            </javaOptions>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                                    <!-- Suppress overlapping resource warnings -->
+                                    <minimizeJar>false</minimizeJar>
+                                    <shadedArtifactAttached>false</shadedArtifactAttached>
+                                    <createSourcesJar>false</createSourcesJar>
+                                    <filters>
+                                        <filter>
+                                            <artifact>*:*</artifact>
+                                            <excludes>
+                                                <exclude>META-INF/*.SF</exclude>
+                                                <exclude>META-INF/*.DSA</exclude>
+                                                <exclude>META-INF/*.RSA</exclude>
+                                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                                <exclude>module-info.class</exclude>
+                                                <!-- Exclude overlapping JavaFX substrate configs -->
+                                                <exclude>META-INF/substrate/config/reflectionconfig-aarch64-android.json</exclude>
+                                                <exclude>META-INF/substrate/config/reflectionconfig-arm64-ios.json</exclude>
+                                                <exclude>META-INF/substrate/config/reflectionconfig-x86_64-ios.json</exclude>
+                                                <exclude>META-INF/substrate/config/resourcebundles</exclude>
+                                                <!-- Exclude Jackson module-info duplicates -->
+                                                <exclude>META-INF/versions/9/module-info.class</exclude>
+                                            </excludes>
+                                        </filter>
+                                    </filters>
+                                    <transformers>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                            <mainClass>client.DominoClient</mainClass>
+                                        </transformer>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                            <resource>META-INF/substrate/config/reflectionconfig.json</resource>
+                                        </transformer>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                            <resource>META-INF/LICENSE</resource>
+                                        </transformer>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                            <resource>META-INF/NOTICE</resource>
+                                        </transformer>
+                                    </transformers>
+                                    <finalName>DominoDuel-shaded</finalName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- JPackage Plugin -->
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <configuration>
+                            <name>DominoDuel</name>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>Domino Games</vendor>
+                            <destination>target/dist</destination>
+                            <input>target</input>
+                            <mainJar>DominoDuel-shaded.jar</mainJar>
+                            <mainClass>client.DominoClient</mainClass>
+                            <icon>src/main/resources/icon.icns</icon>
+                            <javaOptions>
+                                <option>-Dfile.encoding=UTF-8</option>
+                            </javaOptions>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
